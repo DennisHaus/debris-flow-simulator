@@ -835,78 +835,74 @@ function fbm(x, z, octaves = 5) {
 }
 
 
-function terrainHeightFunction(
-  x,
-  z,
-  sizeX,
-  sizeZ
-) {
-  const nx = x / sizeX;
-  const nz = z / sizeZ;
+function terrainHeightAt(x, z) {
+  if (
+    !terrainState
+  ) {
+    return 0;
+  }
 
-  const ridge =
-    Math.exp(
-      -Math.pow(
-        (
-          nz -
-          0.05 -
-          0.08 *
-          Math.sin(nx * 16)
-        ) / 0.25,
-        2
-      )
+  const {
+    heights,
+    resolution
+  } = terrainState;
+
+  const coordinates =
+    terrainGridCoordinates(
+      x,
+      z
     );
 
-  const secondary =
-    Math.exp(
-      -Math.pow(
-        (
-          nz +
-          0.27 +
-          0.05 *
-          Math.sin(nx * 12)
-        ) / 0.16,
-        2
-      )
+  const {
+    x0,
+    z0,
+    x1,
+    z1,
+    tx,
+    tz
+  } = coordinates;
+
+  const h00 =
+    heights[
+      z0 * resolution + x0
+    ];
+
+  const h10 =
+    heights[
+      z0 * resolution + x1
+    ];
+
+  const h01 =
+    heights[
+      z1 * resolution + x0
+    ];
+
+  const h11 =
+    heights[
+      z1 * resolution + x1
+    ];
+
+  const h0 =
+    THREE.MathUtils.lerp(
+      h00,
+      h10,
+      tx
     );
 
-  const noise =
-    fbm(
-      nx * 8 + 10,
-      nz * 8 - 4,
-      5
+  const h1 =
+    THREE.MathUtils.lerp(
+      h01,
+      h11,
+      tx
     );
 
-  const gullies =
-    Math.pow(
-      Math.abs(
-        fbm(
-          nx * 16,
-          nz * 16,
-          4
-        ) - 0.5
-      ) * 2,
-      1.5
-    );
-
-  const valley =
-    Math.exp(
-      -Math.pow(
-        (nz - 0.03) / 0.09,
-        2
-      )
-    );
-
-  return Math.max(
-    0,
-    22 +
-    150 * ridge +
-    60 * secondary +
-    30 * noise +
-    12 * gullies -
-    35 * valley
+  return THREE.MathUtils.lerp(
+    h0,
+    h1,
+    tz
   );
 }
+
 
 
 function buildHeightfield(
