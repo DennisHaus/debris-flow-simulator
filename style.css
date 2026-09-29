@@ -488,7 +488,7 @@ footer {
   border: 0px solid rgba(0, 0, 0, 0);
   border-radius: 0px;
   background: rgba(0, 0, 0, 0.65);
-  color: #111111;
+  color:rgba(255, 255, 255, 1);
 }
 
 .description-dialog::backdrop {
@@ -501,7 +501,7 @@ footer {
   flex-direction: column;
   max-height: 82vh;
   background: rgba(0, 0, 0, 0.65);
-  color: #111111;
+  color:rgba(255, 255, 255, 1);
 }
 
 .description-dialog-header {
@@ -512,7 +512,7 @@ footer {
   padding: 1rem 1.25rem;
   border-bottom: 0px solid rgba(0, 0, 0, 0);
   background: rgba(0, 0, 0, 0.65);
-color: #111111;
+  color:rgba(255, 255, 255, 1);
 }
 
 .description-dialog-header h2 {
@@ -537,7 +537,7 @@ color: #111111;
 }
 
 .description-close:hover {
-  background: rgba(0, 0, 0, 0);
+  background: rgba(0, 0, 0, 0.65);
   color: rgba(255, 255, 255, 1);
 }
 
