@@ -7424,8 +7424,7 @@ function animate(currentTime) {
 /* -------------------------------------------------------------------------- */
 
 function openDescriptionDialog() {
-  var dialog =
-    getElement("descriptionDialog");
+  const dialog = document.getElementById("descriptionDialog");
 
   if (!dialog) {
     return;
@@ -7435,19 +7434,14 @@ function openDescriptionDialog() {
     if (!dialog.open) {
       dialog.showModal();
     }
-
-    return;
+  } else {
+    dialog.setAttribute("open", "");
   }
-
-  /*
-    Fallback for browsers without dialog.showModal().
-  */
-  dialog.setAttribute("open", "");
 }
 
+
 function closeDescriptionDialog() {
-  var dialog =
-    getElement("descriptionDialog");
+  const dialog = document.getElementById("descriptionDialog");
 
   if (!dialog) {
     return;
@@ -7458,65 +7452,42 @@ function closeDescriptionDialog() {
     dialog.open
   ) {
     dialog.close();
-    return;
+  } else {
+    dialog.removeAttribute("open");
   }
-
-  dialog.removeAttribute("open");
 }
 
+
 function bindDescriptionDialog() {
-  var dialog =
-    getElement("descriptionDialog");
+  const dialog =
+    document.getElementById("descriptionDialog");
 
-  var openButton =
-    getElement("OpenDescription");
+  const openButton =
+    document.getElementById("OpenDescription");
 
-  var closeButton =
-    getElement("closeDescription");
-
-  if (!dialog) {
-    console.warn("descriptionDialog was not found.");
+  if (!dialog || !openButton) {
+    console.warn("Description dialog elements were not found.");
     return;
   }
 
-  if (openButton) {
-    openButton.addEventListener(
-      "click",
-      function () {
-        openDescriptionDialog();
-      }
-    );
-  } else {
-    console.warn("OpenDescription button was not found.");
-  }
+  openButton.addEventListener(
+    "click",
+    openDescriptionDialog
+  );
 
-  if (closeButton) {
-    closeButton.addEventListener(
-      "click",
-      function () {
-        closeDescriptionDialog();
-      }
-    );
-  }
-
-  /*
-    Close when clicking the dialog backdrop.
-  */
   dialog.addEventListener(
     "click",
-    function (event) {
+    (event) => {
       if (event.target === dialog) {
         closeDescriptionDialog();
       }
     }
   );
 
-  /*
-    Allow closing with the Escape key.
-  */
   dialog.addEventListener(
     "cancel",
-    function () {
+    (event) => {
+      event.preventDefault();
       closeDescriptionDialog();
     }
   );
@@ -7533,6 +7504,8 @@ updateDirectionVisibility();
 updateShapeVisibility();
 updateParticleReadout();
 resizeRenderer();
+
+bindDescriptionDialog();
 
 buildCurrentTerrain();
 resetSimulation();
