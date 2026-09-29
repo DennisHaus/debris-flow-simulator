@@ -594,6 +594,15 @@ function bindRangeAndNumber(
   );
 }
 
+function updateDirectionVisibility() {
+  const fixedHeadingActive =
+    params.startDirectionMode === "fixed";
+
+  ui.fixedDirectionControl.classList.toggle(
+    "hidden",
+    !fixedHeadingActive
+  );
+}
 
 function syncInterface() {
   const pairs = [
