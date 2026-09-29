@@ -7459,39 +7459,59 @@ function closeDescriptionDialog() {
 
 
 function bindDescriptionDialog() {
-  const dialog =
-    document.getElementById("descriptionDialog");
+  var dialog =
+    getElementById("descriptionDialog");
 
-  const openButton =
-    document.getElementById("OpenDescription");
+  var openButton =
+    getElementById("OpenDescription");
+
+  var closeButton =
+    getElement("closeDescription");
 
   if (!dialog || !openButton) {
     console.warn("Description dialog elements were not found.");
     return;
   }
 
-  openButton.addEventListener(
-    "click",
-    openDescriptionDialog
-  );
+  if (openButton) {
+      openButton.addEventListener(
+        "click",
+        function () {
+          openDescriptionDialog();
+        }
+      );
+    } else {
+      console.warn("OpenDescription button was not found.");
+    }
 
-  dialog.addEventListener(
-    "click",
-    (event) => {
-      if (event.target === dialog) {
-        closeDescriptionDialog();
+    if (closeButton) {
+      closeButton.addEventListener(
+        "click",
+        function () {
+          closeDescriptionDialog();
+        }
+      );
       }
-    }
-  );
 
-  dialog.addEventListener(
-    "cancel",
-    (event) => {
-      event.preventDefault();
-      closeDescriptionDialog();
+      dialog.addEventListener(
+        "click",
+        function (event) {
+          if (event.target === dialog) {
+            closeDescriptionDialog();
+          }
+        }
+      );
+
+      /*
+        Allow closing with the Escape key.
+      */
+      dialog.addEventListener(
+        "cancel",
+        function () {
+          closeDescriptionDialog();
+        }
+      );
     }
-  );
-}
 
 
 /* ------------------------------------------------------------------------- */
