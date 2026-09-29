@@ -206,7 +206,10 @@ const ui = {
   addButton: $("addButton"),
   terrainButton: $("terrainButton"),
 
-  dropZone: $("dropZone"),
+exampleTerrainButton:
+  $("exampleTerrainButton"),
+
+dropZone: $("dropZone"),
   modelFileInput:
     $("modelFileInput"),
 
@@ -6572,6 +6575,87 @@ window.addEventListener(
 /* Model loading                                                             */
 /* ------------------------------------------------------------------------- */
 
+const EXAMPLE_TERRAIN_URL =
+  "./example/kandersteg.stl";
+
+
+async function importTerrainSource(
+  fileName,
+  source
+) {
+  const extension =
+    fileName
+      .split("?")[0]
+      .split(".")
+      .pop()
+      .toLowerCase();
+
+  let object;
+
+  if (
+    extension === "obj"
+  ) {
+    object =
+      new OBJLoader().parse(
+        source.text
+      );
+  } else {
+    let geometry;
+
+    if (
+      extension === "ply"
+    ) {
+      geometry =
+        new PLYLoader().parse(
+          source.buffer
+        );
+    }
+
+    if (
+      extension === "stl"
+    ) {
+      geometry =
+        new STLLoader().parse(
+          source.buffer
+        );
+    }
+
+    if (
+      !geometry
+    ) {
+      throw new Error(
+        "Unsupported terrain format"
+      );
+    }
+
+    object =
+      new THREE.Mesh(
+        geometry,
+        new THREE.MeshBasicMaterial()
+      );
+  }
+
+  const points =
+    extractPointsFromObject(
+      object
+    );
+
+  if (
+    points.length < 3
+  ) {
+    throw new Error(
+      "No usable vertices found"
+    );
+  }
+
+  importedRawPoints =
+    points;
+
+  buildCurrentTerrain();
+  resetSimulation();
+}
+
+
 async function loadTerrainFile(file) {
   if (
     !file
@@ -6579,14 +6663,12 @@ async function loadTerrainFile(file) {
     return;
   }
 
-  const extension =
-    file.name
-      .split(".")
-      .pop()
-      .toLowerCase();
-
   try {
-    let object;
+    const extension =
+      file.name
+        .split(".")
+        .pop()
+        .toLowerCase();
 
     if (
       extension === "obj"
@@ -6594,67 +6676,23 @@ async function loadTerrainFile(file) {
       const text =
         await file.text();
 
-      object =
-        new OBJLoader().parse(
+      await importTerrainSource(
+        file.name,
+        {
           text
-        );
+        }
+      );
     } else {
       const buffer =
         await file.arrayBuffer();
 
-      let geometry;
-
-      if (
-        extension === "ply"
-      ) {
-        geometry =
-          new PLYLoader().parse(
-            buffer
-          );
-      }
-
-      if (
-        extension === "stl"
-      ) {
-        geometry =
-          new STLLoader().parse(
-            buffer
-          );
-      }
-
-      if (
-        !geometry
-      ) {
-        throw new Error(
-          "Unsupported terrain format"
-        );
-      }
-
-      object =
-        new THREE.Mesh(
-          geometry,
-          new THREE.MeshBasicMaterial()
-        );
-    }
-
-    const points =
-      extractPointsFromObject(
-        object
-      );
-
-    if (
-      points.length < 3
-    ) {
-      throw new Error(
-        "No usable vertices found"
+      await importTerrainSource(
+        file.name,
+        {
+          buffer
+        }
       );
     }
-
-    importedRawPoints =
-      points;
-
-    buildCurrentTerrain();
-    resetSimulation();
 
     setStatus(
       `IMPORTED ${extension.toUpperCase()} TERRAIN`
@@ -6666,6 +6704,76 @@ async function loadTerrainFile(file) {
 
     setStatus(
       "MODEL IMPORT FAILED"
+    );
+  }
+}
+
+
+async function loadExampleTerrain() {
+  try {
+    setStatus(
+      "LOADING EXAMPLE TERRAIN"
+    );
+
+    const response =
+      await fetch(
+        EXAMPLE_TERRAIN_URL
+      );
+
+    if (
+      !response.ok
+    ) {
+      throw new Error(
+        `Could not load ${EXAMPLE_TERRAIN_URL}`
+      );
+    }
+
+    const fileName =
+      EXAMPLE_TERRAIN_URL
+        .split("?")[0]
+        .split("/")
+        .pop();
+
+    const extension =
+      fileName
+        .split(".")
+        .pop()
+        .toLowerCase();
+
+    if (
+      extension === "obj"
+    ) {
+      const text =
+        await response.text();
+
+      await importTerrainSource(
+        fileName,
+        {
+          text
+        }
+      );
+    } else {
+      const buffer =
+        await response.arrayBuffer();
+
+      await importTerrainSource(
+        fileName,
+        {
+          buffer
+        }
+      );
+    }
+
+    setStatus(
+      `EXAMPLE ${extension.toUpperCase()} TERRAIN`
+    );
+  } catch (error) {
+    console.error(
+      error
+    );
+
+    setStatus(
+      "EXAMPLE TERRAIN LOAD FAILED"
     );
   }
 }
@@ -7226,6 +7334,11 @@ ui.terrainButton.addEventListener(
       "NEW ALPINE TERRAIN"
     );
   }
+);
+
+ui.exampleTerrainButton.addEventListener(
+  "click",
+  loadExampleTerrain
 );
 
 
