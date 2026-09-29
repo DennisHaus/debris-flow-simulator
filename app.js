@@ -3362,7 +3362,7 @@ function pauseSimulation() {
 }
 
 
-ffunction animateSimulation(realDelta) {
+function animateSimulation(realDelta) {
   if (!params.running) {
     return;
   }
