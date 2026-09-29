@@ -834,6 +834,56 @@ function fbm(x, z, octaves = 5) {
   return total / weight;
 }
 
+function ridgedFbm(
+  x,
+  z,
+  octaves = 5
+) {
+  let amplitude = 0.5;
+  let frequency = 1;
+  let total = 0;
+  let normalisation = 0;
+
+  for (
+    let i = 0;
+    i < octaves;
+    i++
+  ) {
+    const noiseValue =
+      noise2(
+        x * frequency,
+        z * frequency
+      );
+
+    /*
+      Converts ordinary noise into sharper ridge-like
+      mountain structures.
+    */
+    const ridge =
+      1 -
+      Math.abs(
+        2 * noiseValue - 1
+      );
+
+    total +=
+      ridge *
+      ridge *
+      amplitude;
+
+    normalisation +=
+      amplitude;
+
+    amplitude *= 0.5;
+    frequency *= 2;
+  }
+
+  return total /
+    Math.max(
+      normalisation,
+      0.000001
+    );
+}
+
 
 function terrainHeightFunction(
   x,
@@ -841,71 +891,451 @@ function terrainHeightFunction(
   sizeX,
   sizeZ
 ) {
-  const nx = x / sizeX;
-  const nz = z / sizeZ;
+  /*
+    Normalised terrain coordinates.
+    The range is approximately -0.5 to +0.5.
+  */
+  const nx =
+    x / sizeX;
 
-  const ridge =
+  const nz =
+    z / sizeZ;
+
+
+  /*
+    Low-frequency domain warping bends the valleys
+    and ridges so that they do not look like straight
+    mathematical bands.
+  */
+  const warpX =
+    (
+      fbm(
+        nx * 3.2 + 12.4,
+        nz * 3.2 - 7.8,
+        4
+      ) -
+      0.5
+    ) *
+    0.09;
+
+  const warpZ =
+    (
+      fbm(
+        nx * 3.2 - 5.1,
+        nz * 3.2 + 9.6,
+        4
+      ) -
+      0.5
+    ) *
+    0.09;
+
+  const warpedX =
+    nx + warpX;
+
+  const warpedZ =
+    nz + warpZ;
+
+
+  /*
+    Main curved glacial valley.
+  */
+  const mainValleyAxis =
+    0.025 *
+      Math.sin(
+        (warpedX + 0.5) * 11
+      ) +
+    0.018 *
+      Math.sin(
+        (warpedX + 0.5) * 27
+      );
+
+  const mainValleyDistance =
+    warpedZ -
+    mainValleyAxis;
+
+  const valleyWidth =
+    0.18 +
+    0.025 *
+      fbm(
+        warpedX * 4 + 4,
+        warpedZ * 4 - 2,
+        3
+      );
+
+  const broadValley =
     Math.exp(
       -Math.pow(
-        (
-          nz -
-          0.05 -
-          0.08 *
-          Math.sin(nx * 16)
-        ) / 0.25,
+        mainValleyDistance /
+          valleyWidth,
         2
       )
     );
 
-  const secondary =
+  const innerValley =
     Math.exp(
       -Math.pow(
-        (
-          nz +
-          0.27 +
-          0.05 *
-          Math.sin(nx * 12)
-        ) / 0.16,
+        mainValleyDistance /
+          (
+            valleyWidth *
+            0.43
+          ),
         2
       )
     );
 
-  const noise =
+
+  /*
+    Mountain shoulders on both sides of the valley.
+  */
+  const leftShoulder =
+    Math.exp(
+      -Math.pow(
+        (
+          mainValleyDistance +
+          0.245
+        ) /
+          0.205,
+        2
+      )
+    );
+
+  const rightShoulder =
+    Math.exp(
+      -Math.pow(
+        (
+          mainValleyDistance -
+          0.245
+        ) /
+          0.205,
+        2
+      )
+    );
+
+
+  /*
+    A smaller side valley adds variation without
+    breaking the main alpine structure.
+  */
+  const sideValleyAxis =
+    -0.30 +
+    0.045 *
+      Math.sin(
+        (warpedX + 0.5) * 13
+      );
+
+  const sideValleyDistance =
+    warpedZ -
+    sideValleyAxis;
+
+  const sideValley =
+    Math.exp(
+      -Math.pow(
+        sideValleyDistance /
+          0.105,
+        2
+      )
+    );
+
+
+  /*
+    Broad regional relief.
+  */
+  const regionalNoise =
     fbm(
-      nx * 8 + 10,
-      nz * 8 - 4,
+      warpedX * 2.8 + 8,
+      warpedZ * 2.8 - 6,
+      4
+    );
+
+  const mountainMass =
+    ridgedFbm(
+      warpedX * 2.7 + 2,
+      warpedZ * 2.7 - 4,
       5
     );
 
-  const gullies =
-    Math.pow(
-      Math.abs(
-        fbm(
-          nx * 16,
-          nz * 16,
-          4
-        ) - 0.5
-      ) * 2,
-      1.5
+  const ridgeDetail =
+    ridgedFbm(
+      warpedX * 8.0 - 12,
+      warpedZ * 8.0 + 5,
+      4
     );
 
-  const valley =
-    Math.exp(
-      -Math.pow(
-        (nz - 0.03) / 0.09,
-        2
+  const weatheringNoise =
+    fbm(
+      warpedX * 15 - 3,
+      warpedZ * 15 + 11,
+      4
+    );
+
+
+  /*
+    Combine broad relief, ridges, valley shoulders,
+    and smaller terrain detail.
+  */
+  const broadRelief =
+    24 +
+    72 *
+      (
+        0.45 +
+        0.55 *
+          regionalNoise
+      );
+
+  const mountainRelief =
+    118 *
+    Math.pow(
+      mountainMass,
+      1.25
+    ) *
+    (
+      0.55 +
+      0.45 *
+        regionalNoise
+    );
+
+  const shoulderRelief =
+    42 *
+    (
+      leftShoulder +
+      rightShoulder
+    ) *
+    (
+      0.65 +
+      0.35 *
+        regionalNoise
+    );
+
+  const fineRelief =
+    16 *
+      ridgeDetail +
+    8 *
+      weatheringNoise;
+
+
+  /*
+    Cut the broad valley into the terrain.
+    The inner valley cut is stronger near the
+    centre and produces a more U-shaped appearance.
+  */
+  const valleyCut =
+    62 *
+      broadValley +
+    14 *
+      innerValley;
+
+  const sideValleyCut =
+    20 *
+    sideValley;
+
+  const height =
+    broadRelief +
+    mountainRelief +
+    shoulderRelief +
+    fineRelief -
+    valleyCut -
+    sideValleyCut;
+
+  return Math.max(
+    4,
+    height
+  );
+}
+
+
+function limitHeightfieldSlope(
+  heights,
+  resolution,
+  sizeX,
+  sizeZ,
+  maximumSlopeDegrees = 45,
+  passes = 32
+) {
+  const maximumSlope =
+    Math.tan(
+      THREE.MathUtils.degToRad(
+        maximumSlopeDegrees
       )
     );
 
-  return Math.max(
-    0,
-    22 +
-    150 * ridge +
-    60 * secondary +
-    30 * noise +
-    12 * gullies -
-    35 * valley
-  );
+  const gridStepX =
+    sizeX /
+    Math.max(
+      resolution - 1,
+      1
+    );
+
+  const gridStepZ =
+    sizeZ /
+    Math.max(
+      resolution - 1,
+      1
+    );
+
+  /*
+    These four directions cover every horizontal,
+    vertical, and diagonal neighbour pair once.
+  */
+  const neighbourDirections = [
+    {
+      dx: 1,
+      dz: 0,
+      distance: gridStepX
+    },
+
+    {
+      dx: 0,
+      dz: 1,
+      distance: gridStepZ
+    },
+
+    {
+      dx: 1,
+      dz: 1,
+      distance: Math.hypot(
+        gridStepX,
+        gridStepZ
+      )
+    },
+
+    {
+      dx: -1,
+      dz: 1,
+      distance: Math.hypot(
+        gridStepX,
+        gridStepZ
+      )
+    }
+  ];
+
+  for (
+    let pass = 0;
+    pass < passes;
+    pass++
+  ) {
+    let changed = false;
+
+    for (
+      let z = 0;
+      z < resolution;
+      z++
+    ) {
+      for (
+        let x = 0;
+        x < resolution;
+        x++
+      ) {
+        const currentIndex =
+          z * resolution + x;
+
+        for (
+          const direction of
+          neighbourDirections
+        ) {
+          const neighbourX =
+            x + direction.dx;
+
+          const neighbourZ =
+            z + direction.dz;
+
+          if (
+            neighbourX < 0 ||
+            neighbourX >= resolution ||
+            neighbourZ < 0 ||
+            neighbourZ >= resolution
+          ) {
+            continue;
+          }
+
+          const neighbourIndex =
+            neighbourZ *
+              resolution +
+            neighbourX;
+
+          const maximumHeightDifference =
+            maximumSlope *
+            direction.distance;
+
+          const difference =
+            heights[currentIndex] -
+            heights[neighbourIndex];
+
+          if (
+            Math.abs(difference) <=
+            maximumHeightDifference
+          ) {
+            continue;
+          }
+
+          /*
+            Move half the excess height from the
+            higher sample to the lower sample.
+            This preserves the average elevation
+            while reducing the slope.
+          */
+          const excess =
+            Math.abs(difference) -
+            maximumHeightDifference;
+
+          const correction =
+            excess * 0.5;
+
+          if (
+            difference > 0
+          ) {
+            heights[currentIndex] -=
+              correction;
+
+            heights[neighbourIndex] +=
+              correction;
+          } else {
+            heights[currentIndex] +=
+              correction;
+
+            heights[neighbourIndex] -=
+              correction;
+          }
+
+          changed = true;
+        }
+      }
+    }
+
+    if (
+      !changed
+    ) {
+      break;
+    }
+  }
+
+  /*
+    Keep the terrain above zero after slope limiting.
+  */
+  let minimum =
+    Infinity;
+
+  for (
+    const height of heights
+  ) {
+    minimum =
+      Math.min(
+        minimum,
+        height
+      );
+  }
+
+  if (
+    minimum < 0
+  ) {
+    for (
+      let i = 0;
+      i < heights.length;
+      i++
+    ) {
+      heights[i] -=
+        minimum;
+    }
+  }
 }
 
 
@@ -916,7 +1346,8 @@ function buildHeightfield(
 ) {
   const heights =
     new Float32Array(
-      resolution * resolution
+      resolution *
+      resolution
     );
 
   for (
@@ -924,26 +1355,43 @@ function buildHeightfield(
     z < resolution;
     z++
   ) {
-    const nz =
-      z / (resolution - 1);
+    const normalizedZ =
+      z /
+      Math.max(
+        resolution - 1,
+        1
+      );
 
     const worldZ =
-      (nz - 0.5) * sizeZ;
+      (
+        normalizedZ -
+        0.5
+      ) *
+      sizeZ;
 
     for (
       let x = 0;
       x < resolution;
       x++
     ) {
-      const nx =
-        x / (resolution - 1);
+      const normalizedX =
+        x /
+        Math.max(
+          resolution - 1,
+          1
+        );
 
       const worldX =
-        (nx - 0.5) * sizeX;
+        (
+          normalizedX -
+          0.5
+        ) *
+        sizeX;
 
-      heights[
-        z * resolution + x
-      ] =
+      const index =
+        z * resolution + x;
+
+      heights[index] =
         terrainHeightFunction(
           worldX,
           worldZ,
@@ -953,6 +1401,20 @@ function buildHeightfield(
         params.verticalExaggeration;
     }
   }
+
+  /*
+    Apply the maximum slope after vertical
+    exaggeration, so the displayed terrain still
+    respects the requested limit.
+  */
+  limitHeightfieldSlope(
+    heights,
+    resolution,
+    sizeX,
+    sizeZ,
+    45,
+    32
+  );
 
   return heights;
 }
