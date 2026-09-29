@@ -484,7 +484,7 @@ footer {
   max-width: 760px;
   max-height: 82vh;
   padding: 0;
-  border: 0px solid rgba(0, 0, 0, 0);
+  border: none;
   border-radius: 0px;
   background: rgba(255, 255, 255, 0.65);
   color: #1d1d1b;
@@ -526,14 +526,15 @@ footer {
   border: none;
   border-radius: 0%;
   background: transparent;
-  color: rgba(0, 0, 0, 0.8);
+  color: rgba(0, 0, 0, 1);
   font-size: 1.6rem;
-  line-height: 1;
+  line-height: 0;
   cursor: pointer;
 }
 
 .description-close:hover {
-  background: rgba(0, 0, 0, 1);
+  background: rgba(0, 0, 0, 0);
+  color: rgba(255, 255, 255, 1);
 }
 
 .description-dialog-body {
@@ -599,7 +600,7 @@ footer {
   border: 1px solid #777;
   border-radius: 2px;
   background: #111;
-  color: #eeeeee;
+  color: rgba(0, 0, 0, 1);
   overflow: hidden;
   z-index: 1000;
 }
@@ -617,12 +618,13 @@ footer {
   box-sizing: border-box;
   font-family: inherit;
   font-size: 14px;
-  line-height: 1.55;
+  line-height: 0;
+  color: rgba(0, 0, 0, 1);
 }
 
 .description-dialog-content h2 {
   margin: 0 0 24px;
-  color: #ffffff;
+  color: rgba(0, 0, 0, 1);
   font-size: 18px;
   letter-spacing: 0.08em;
 }
@@ -630,13 +632,13 @@ footer {
 .description-section {
   display: block;
   margin-bottom: 24px;
-  color: #dddddd;
+  color: rgba(0, 0, 0, 1);
 }
 
 .description-section strong {
   display: block;
   margin-bottom: 8px;
-  color: #ffffff;
+  color: rgba(0, 0, 0, 1);
   font-size: 11px;
   letter-spacing: 0.12em;
 }
@@ -659,23 +661,4 @@ input[type="checkbox"] {
 
 .change-legend .erosion {
   color: #e15d5d;
-}
-
-@media (max-width: 480px) {
-  .description-tooltip-content {
-    position: fixed;
-    left: 15px;
-    right: 15px;
-    top: 120px;
-    width: auto;
-    max-width: none;
-    max-height: 60vh;
-  }
-
-  .description-tooltip-content::before {
-    display: none;
-  }
-
-.interface {
-
 }
