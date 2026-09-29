@@ -591,93 +591,53 @@ footer {
   color: #ffffff;
   background: #1b1b1b;
 }
-.description-tooltip {
-  position: relative;
-  display: inline-block;
-  margin-top: 10px;
-  color: #d5d5d5;
-  border-bottom: 1px dotted #888888;
-  cursor: help;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-}
-
-.description-tooltip-content {
-  position: absolute;
+.description-dialog {
+  width: min(680px, calc(100vw - 40px));
+  max-height: min(80vh, 760px);
+  padding: 0;
+  border: 1px solid #777;
+  border-radius: 2px;
+  background: #111;
+  color: #eeeeee;
+  overflow: hidden;
   z-index: 1000;
-  left: 0;
-  top: calc(100% + 10px);
-
-  width: 340px;
-  max-width: calc(100vw - 48px);
-  max-height: 65vh;
-
-  padding: 15px;
-  overflow-y: auto;
-
-  border: 1px solid #555555;
-  background: #0b0b0b;
-  color: #cfcfcf;
-
-  box-shadow:
-    0 12px 30px rgba(0, 0, 0, 0.55);
-
-  font-size: 10px;
-  font-weight: 400;
-  letter-spacing: 0.01em;
-  line-height: 1.5;
-  text-align: left;
-
-  visibility: hidden;
-  opacity: 0;
-  pointer-events: none;
-
-  transition:
-    opacity 120ms ease,
-    visibility 120ms ease;
 }
 
-.description-tooltip-content::before {
-  position: absolute;
-  top: -6px;
-  left: 14px;
-
-  width: 10px;
-  height: 10px;
-
-  border-top: 1px solid #555555;
-  border-left: 1px solid #555555;
-
-  background: #0b0b0b;
-  content: "";
-
-  transform: rotate(45deg);
+.description-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.78);
+  backdrop-filter: blur(5px);
 }
 
-.description-tooltip-content strong {
+.description-dialog-content {
   display: block;
-  margin-bottom: 4px;
+  max-height: 80vh;
+  overflow-y: auto;
+  padding: 28px 32px;
+  box-sizing: border-box;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.description-dialog-content h2 {
+  margin: 0 0 24px;
   color: #ffffff;
-  font-size: 10px;
+  font-size: 18px;
   letter-spacing: 0.08em;
 }
 
 .description-section {
   display: block;
-  margin-bottom: 12px;
+  margin-bottom: 24px;
+  color: #dddddd;
 }
 
-.description-section:last-child {
-  margin-bottom: 0;
-}
-
-.description-tooltip:hover
-.description-tooltip-content,
-.description-tooltip:focus
-.description-tooltip-content {
-  visibility: visible;
-  opacity: 1;
-  pointer-events: auto;
+.description-section strong {
+  display: block;
+  margin-bottom: 8px;
+  color: #ffffff;
+  font-size: 11px;
+  letter-spacing: 0.12em;
 }
 
 input[type="checkbox"] {
