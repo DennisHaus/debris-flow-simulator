@@ -120,6 +120,7 @@ h1 {
   color: var(--muted);
   font-size: 11px;
   line-height: 1.55;
+  margin-bottom: 12px;
 }
 
 .controls {
