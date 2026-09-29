@@ -7424,95 +7424,91 @@ function animate(currentTime) {
 /* -------------------------------------------------------------------------- */
 
 function openDescriptionDialog() {
-  const dialog = document.getElementById("descriptionDialog");
+  const dialog =
+    $("descriptionDialog");
 
-  if (!dialog) {
+  if (
+    typeof dialog.showModal === "function"
+  ) {
+    if (
+      !dialog.open
+    ) {
+      dialog.showModal();
+    }
+
     return;
   }
 
-  if (typeof dialog.showModal === "function") {
-    if (!dialog.open) {
-      dialog.showModal();
-    }
-  } else {
-    dialog.setAttribute("open", "");
-  }
+  dialog.setAttribute(
+    "open",
+    ""
+  );
 }
 
 
 function closeDescriptionDialog() {
-  const dialog = document.getElementById("descriptionDialog");
-
-  if (!dialog) {
-    return;
-  }
+  const dialog =
+    $("descriptionDialog");
 
   if (
     typeof dialog.close === "function" &&
     dialog.open
   ) {
     dialog.close();
-  } else {
-    dialog.removeAttribute("open");
+    return;
   }
+
+  dialog.removeAttribute(
+    "open"
+  );
 }
 
 
 function bindDescriptionDialog() {
-  var dialog =
-    getElementById("descriptionDialog");
+  const dialog =
+    $("descriptionDialog");
 
-  var openButton =
-    getElementById("OpenDescription");
+  const openButton =
+    $("OpenDescription");
 
-  var closeButton =
-    getElement("closeDescription");
+  const closeButton =
+    $("closeDescription");
 
-  if (!dialog || !openButton) {
-    console.warn("Description dialog elements were not found.");
-    return;
-  }
+  openButton.addEventListener(
+    "click",
+    openDescriptionDialog
+  );
 
-  if (openButton) {
-      openButton.addEventListener(
-        "click",
-        function () {
-          openDescriptionDialog();
-        }
-      );
-    } else {
-      console.warn("OpenDescription button was not found.");
-    }
+  closeButton.addEventListener(
+    "click",
+    closeDescriptionDialog
+  );
 
-    if (closeButton) {
-      closeButton.addEventListener(
-        "click",
-        function () {
-          closeDescriptionDialog();
-        }
-      );
+  /*
+    Close when clicking the dialog backdrop.
+  */
+  dialog.addEventListener(
+    "click",
+    (event) => {
+      if (
+        event.target === dialog
+      ) {
+        closeDescriptionDialog();
       }
-
-      dialog.addEventListener(
-        "click",
-        function (event) {
-          if (event.target === dialog) {
-            closeDescriptionDialog();
-          }
-        }
-      );
-
-      /*
-        Allow closing with the Escape key.
-      */
-      dialog.addEventListener(
-        "cancel",
-        function () {
-          closeDescriptionDialog();
-        }
-      );
     }
+  );
 
+  /*
+    Close with the Escape key.
+  */
+  dialog.addEventListener(
+    "cancel",
+    (event) => {
+      event.preventDefault();
+      closeDescriptionDialog();
+    }
+  );
+}
 
 /* ------------------------------------------------------------------------- */
 /* Initialisation                                                             */
