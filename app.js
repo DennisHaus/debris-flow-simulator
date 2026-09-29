@@ -3362,7 +3362,7 @@ function pauseSimulation() {
 }
 
 
-function animateSimulation(realDelta) {
+ffunction animateSimulation(realDelta) {
   if (!params.running) {
     return;
   }
@@ -3379,13 +3379,23 @@ function animateSimulation(realDelta) {
     params.running
   ) {
     updatePhysics(PHYSICS_STEP);
-    simulationAccumulator -= PHYSICS_STEP;
+
+    simulationAccumulator -=
+      PHYSICS_STEP;
+
     steps++;
   }
 
-  particleGeometry
-    ?.getAttribute("position")
-    .needsUpdate = true;
+  if (particleGeometry) {
+    const positionAttribute =
+      particleGeometry.getAttribute(
+        "position"
+      );
+
+    if (positionAttribute) {
+      positionAttribute.needsUpdate = true;
+    }
+  }
 
   updateParticleColours();
 }
