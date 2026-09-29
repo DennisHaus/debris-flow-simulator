@@ -472,3 +472,122 @@ footer {
   color: inherit;
   text-decoration: none;
 }
+
+
+/* -------------------------------------------------------------------------- */
+/* DESCRIPTION DIALOG                                                         */
+/* -------------------------------------------------------------------------- */
+
+.description-dialog {
+  width: min(760px, calc(100vw - 2rem));
+  max-width: 760px;
+  max-height: 82vh;
+  padding: 0;
+  border: 0px solid rgba(0, 0, 0, 0);
+  border-radius: 0px;
+  background: rgba(255, 255, 255, 0.65);
+  color: #1d1d1b;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.3);
+}
+
+.description-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(2px);
+}
+
+.description-dialog-inner {
+  display: flex;
+  flex-direction: column;
+  max-height: 82vh;
+}
+
+.description-dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  border-bottom: 0px solid rgba(0, 0, 0, 0);
+}
+
+.description-dialog-header h2 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.description-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: none;
+  border-radius: 0%;
+  background: transparent;
+  color: rgba(0, 0, 0, 0.8);
+  font-size: 1.6rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.description-close:hover {
+  background: rgba(0, 0, 0, 1);
+}
+
+.description-dialog-body {
+  overflow-y: auto;
+  padding: 1.25rem 1.5rem 1.5rem;
+}
+
+.description-dialog-body section {
+  margin-bottom: 1.5rem;
+}
+
+.description-dialog-body section:last-child {
+  margin-bottom: 0;
+}
+
+.description-dialog-body h3 {
+  margin: 0 0 0.5rem;
+  font-size: 1rem;
+}
+
+.description-dialog-body p {
+  margin: 0 0 0.75rem;
+  line-height: 1.55;
+}
+
+.description-dialog-body ul {
+  margin: 0;
+  padding-left: 1.25rem;
+}
+
+.description-dialog-body li {
+  margin-bottom: 0.45rem;
+  line-height: 1.45;
+}
+
+
+.toolbar-button {
+  min-height: 30px;
+  padding: 0 10px;
+
+  border: 1px solid var(--border-light);
+  border-radius: 0;
+
+  color: #cccccc;
+  background: #0b0b0b;
+
+  font-size: 9px;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.toolbar-button:hover,
+.toolbar-button.active {
+  border-color: #aaaaaa;
+  color: #ffffff;
+  background: #1b1b1b;
+}
