@@ -40,7 +40,7 @@
         <h1>
           DEBRIS<br>
           FLOW<br>
-          SIMULATOR f
+          SIMULATOR g
         </h1>
 
         <p class="description">
@@ -1196,170 +1196,483 @@
 
   </main>
 
-<dialog
-id="descriptionDialog"
+  <dialog
+    id="descriptionDialog"
     class="description-dialog"
     aria-labelledby="descriptionTitle"
->
-  <div class="description-dialog-content">
+  >
+    <div class="description-dialog-inner">
 
-    <h2 id="descriptionTitle">
-      Debris Flow Simulator — Read Me
-    </h2>
+      <div class="description-dialog-header">
+        <h2 id="descriptionTitle">
+          Debris Flow Simulator
+        </h2>
 
-    <span class="description-section">
-      <strong>VIEWER FUNCTIONS</strong>
+        <button
+          id="closeDescription"
+          class="description-close"
+          type="button"
+          aria-label="Close description"
+        >
+          &times;
+        </button>
+      </div>
 
-      The viewer displays either a procedurally generated alpine
-      terrain or an imported PLY, STL, or OBJ model. In "Example Terrain" a terrain model from Kandersteg can be loaded.
-      The camera can
-      be rotated, zoomed, and panned using OrbitControls.
 
-      SHIFT + LEFT CLICK moves the source area. CMD or CTRL + LEFT
-      CLICK adds points to a custom polygonal release area. Press
-      ENTER to finish drawing the polygon.
-    </span>
+      <div class="description-dialog-body">
 
-    <span class="description-section">
-      <strong>TERRAIN REPRESENTATION</strong>
+        <section>
+          <h3>Overview</h3>
 
-      The terrain is represented as a regular heightfield. Each
-      horizontal position has one terrain height and one interpolated
-      terrain normal.
+          <p>
+            The Debris Flow Simulator is a simplified terrain-based model for
+            observing sediment movement across changing topography.
+          </p>
 
-      This makes collision calculations efficient, but means that
-      overhangs, caves, vertical walls, bridges, and multiple terrain
-      layers are not represented by the physics.
-    </span>
+          <p>
+            It is intended for visualisation, design exploration, and comparison
+            of parameter settings. It should not be used for engineering design,
+            hazard prediction, legal analysis, or quantitative forecasting of a
+            real debris-flow event.
+          </p>
+        </section>
 
-    <span class="description-section">
-      <strong>MACRO-PARTICLES</strong>
 
-      The material volume is divided into macro-particles using:
+        <section>
+          <h3>Viewer functions</h3>
 
-      source volume × particles per m³.
+          <p>
+            The viewer displays either a procedurally generated alpine terrain
+            or an imported PLY, STL, or OBJ terrain model.
+          </p>
 
-      Each particle represents a volume parcel rather than one
-      physical grain. With the default settings, 7,000 m³ and
-      approximately 1,000 particles result in approximately 7 m³
-      per particle.
+          <ul>
+            <li>
+              <strong>OrbitControls:</strong>
+              Rotate, zoom, and pan the terrain view.
+            </li>
 
-      A global particle mass is not used independently because all
-      particles represent equal-volume parcels.
-    </span>
+            <li>
+              <strong>New Terrain:</strong>
+              Generates a new procedural alpine terrain.
+            </li>
 
-    <span class="description-section">
-      <strong>MATERIAL PARAMETERS</strong>
+            <li>
+              <strong>Example Terrain:</strong>
+              Loads the example terrain from Kandersteg.
+            </li>
 
-      The material model uses particle friction, terrain friction,
-      static friction, cohesion, contact damping, and velocity-
-      dependent flow drag.
+            <li>
+              <strong>Choose 3D Model:</strong>
+              Imports a PLY, STL, or OBJ terrain model.
+            </li>
 
-      The defaults are tuned for a visually coherent flow rather
-      than for calibrated prediction of a specific real event.
-    </span>
+            <li>
+              <strong>Drop 3D Terrain Here:</strong>
+              Import a terrain model by dragging it into the drop zone.
+            </li>
+          </ul>
+        </section>
 
-    <span class="description-section">
-      <strong>GRAVITY AND TERRAIN SLOPE</strong>
 
-      Particles above the terrain receive ordinary vertical gravity.
-      Particles close to the terrain receive gravity projected onto
-      the tangent plane of the terrain. This produces downhill
-      acceleration.
-    </span>
+        <section>
+          <h3>Navigation and source placement</h3>
 
-    <span class="description-section">
-      <strong>FRICTION AND CONTACT</strong>
+          <ul>
+            <li>
+              <strong>Shift + left click:</strong>
+              Move the release source across the terrain.
+            </li>
 
-      Static friction prevents slow particles from creeping on
-      gentle slopes. Moving particles use kinetic friction.
+            <li>
+              <strong>Cmd / Ctrl + left click:</strong>
+              Add points to a custom polygonal release area.
+            </li>
 
-      Nearby particles are found with a spatial hash. Overlapping
-      particles are pushed apart. Relative normal velocity is
-      corrected, tangential contact motion is reduced, and contact
-      damping reduces jitter.
-    </span>
+            <li>
+              <strong>Enter:</strong>
+              Finish drawing a custom release polygon.
+            </li>
 
-    <span class="description-section">
-      <strong>COHESION</strong>
+            <li>
+              <strong>Escape:</strong>
+              Cancel the current polygon drawing.
+            </li>
 
-      Nearby particles are attracted only when they are farther apart
-      than a preferred rest distance. Particles already in contact
-      are not additionally attracted.
+            <li>
+              <strong>Backspace:</strong>
+              Remove the last polygon point.
+            </li>
+          </ul>
 
-      This reduces excessive clumping while preserving a coherent
-      flow appearance.
-    </span>
+          <p>
+            Source placement is only available while the simulation is paused.
+          </p>
+        </section>
 
-    <span class="description-section">
-      <strong>FLOW DRAG</strong>
 
-      A quadratic drag force is applied to the tangential velocity
-      near the terrain. Drag increases with the square of velocity
-      and limits unrealistically high speeds.
-    </span>
+        <section>
+          <h3>Terrain representation</h3>
 
-    <span class="description-section">
-      <strong>EROSION AND DEPOSITION</strong>
+          <p>
+            The terrain is represented as a regular heightfield. Each horizontal
+            position has one terrain height and one interpolated terrain normal.
+          </p>
 
-      Fast-moving particles in contact with sufficiently inclined
-      terrain erode a small amount of terrain.
+          <p>
+            This makes collision calculations efficient, but means that
+            overhangs, caves, vertical walls, bridges, and multiple terrain
+            layers are not represented by the physics.
+          </p>
+        </section>
 
-      Particles that have travelled and later come to rest deposit a
-      small amount of material.
 
-      The terrain is updated periodically rather than after every
-      particle. The process is a visual heightfield approximation and
-      is not a fully mass-conservative sediment budget.
-    </span>
+        <section>
+          <h3>Material and flow</h3>
 
-    <span class="description-section">
-      <strong>CHANGE HIGHLIGHTING</strong>
+          <p>
+            The material model uses macro-particles. Each macro-particle
+            represents a volume parcel rather than a single physical grain.
+          </p>
 
-      When enabled, accumulated erosion is shown in red and
-      accumulated deposition is shown in blue.
+          <ul>
+            <li>
+              <strong>Particle friction:</strong>
+              Controls friction between material particles.
+            </li>
 
-      The colors describe the history of terrain change, not the
-      current particle velocity.
-    </span>
+            <li>
+              <strong>Kinetic terrain friction:</strong>
+              Controls friction between particles and the terrain.
+            </li>
 
-    <span class="description-section">
-      <strong>COLOUR MODES</strong>
+            <li>
+              <strong>Static friction factor:</strong>
+              Controls when particles remain at rest on a slope.
+            </li>
 
-      VELOCITY colours particles according to their current speed.
+            <li>
+              <strong>Particle cohesion:</strong>
+              Controls attraction between particles that are separated from
+              their preferred rest distance.
+            </li>
 
-      DISTANCE TRAVELED colours particles according to accumulated
-      travel distance.
+            <li>
+              <strong>Contact damping:</strong>
+              Reduces jitter and tangential motion during particle contact.
+            </li>
 
-      FLOW THICKNESS estimates local volume per terrain cell and
-      colours particles according to local thickness.
-    </span>
+            <li>
+              <strong>Flow drag length:</strong>
+              Controls velocity-dependent drag near the terrain.
+            </li>
 
-    <span class="description-section">
-      <strong>WHAT THIS IS NOT</strong>
+            <li>
+              <strong>Start velocity:</strong>
+              Defines the initial particle velocity.
+            </li>
 
-      This is not an MPM solver, FLIP solver, PIC solver, SPH solver,
-      or complete DEM solver.
+            <li>
+              <strong>Simulation speed:</strong>
+              Changes the playback speed of the simulation.
+            </li>
+          </ul>
+        </section>
 
-      It does not solve pressure, fluid incompressibility, stress
-      tensors, pore-water pressure, angular particle rotation,
-      conservative sediment transport, or full material
-      constitutive laws.
-    </span>
 
-    <span class="description-section">
-      <strong>RELIABILITY</strong>
+        <section>
+          <h3>Start direction</h3>
 
-      The simulation is intended for qualitative visualisation,
-      design exploration, and comparison of parameter settings.
+          <p>
+            The initial direction of the material can be controlled using four
+            different modes.
+          </p>
 
-      It should not be used for engineering design, structural
-      loading, legal analysis, hazard prediction, or quantitative
-      forecasting of a real debris-flow event.
-    </span>
+          <ul>
+            <li>
+              <strong>Downhill:</strong>
+              Starts particles in the direction of the local terrain slope.
+            </li>
 
-  </div>
-</dialog>
+            <li>
+              <strong>Fixed heading:</strong>
+              Uses a specified horizontal angle.
+            </li>
+
+            <li>
+              <strong>Radial from source:</strong>
+              Sends particles away from the source centre.
+            </li>
+
+            <li>
+              <strong>User vector:</strong>
+              Uses the specified X and Z vector components.
+            </li>
+          </ul>
+        </section>
+
+
+        <section>
+          <h3>Erosion and deposition</h3>
+
+          <p>
+            When terrain evolution is enabled, the terrain can change during the
+            simulation.
+          </p>
+
+          <ul>
+            <li>
+              Fast-moving particles in contact with sufficiently inclined terrain
+              erode a small amount of terrain.
+            </li>
+
+            <li>
+              Particles that have travelled and later come to rest deposit a
+              small amount of material.
+            </li>
+
+            <li>
+              Terrain changes are applied periodically rather than after every
+              particle interaction.
+            </li>
+
+            <li>
+              The process is a visual heightfield approximation and is not a
+              fully mass-conservative sediment budget.
+            </li>
+          </ul>
+
+          <p>
+            The erosion and deposition rates are expressed as percentages per
+            second. The erosion start speed and deposition speed determine when
+            these processes become active.
+          </p>
+        </section>
+
+
+        <section>
+          <h3>Change overlay</h3>
+
+          <p>
+            The change overlay shows the accumulated history of terrain
+            modification.
+          </p>
+
+          <ul>
+            <li>
+              <strong>Blue:</strong>
+              Deposition.
+            </li>
+
+            <li>
+              <strong>Red:</strong>
+              Erosion.
+            </li>
+          </ul>
+
+          <p>
+            These colours describe terrain change and not the current particle
+            velocity.
+          </p>
+        </section>
+
+
+        <section>
+          <h3>Terrain scale and orientation</h3>
+
+          <ul>
+            <li>
+              <strong>Model scale:</strong>
+              Changes the horizontal scale of the terrain.
+            </li>
+
+            <li>
+              <strong>Metres per model unit:</strong>
+              Sets the scale of imported terrain models.
+            </li>
+
+            <li>
+              <strong>Vertical scale:</strong>
+              Exaggerates or reduces terrain height.
+            </li>
+
+            <li>
+              <strong>Z axis scale:</strong>
+              Changes the terrain depth relative to its width.
+            </li>
+
+            <li>
+              <strong>Rotate X, Y, and Z:</strong>
+              Changes the orientation of imported terrain.
+            </li>
+
+            <li>
+              <strong>Reset rotation:</strong>
+              Restores the default model orientation.
+            </li>
+          </ul>
+        </section>
+
+
+        <section>
+          <h3>Source material</h3>
+
+          <p>
+            The release source can be defined as either a square area or a
+            custom polygon.
+          </p>
+
+          <ul>
+            <li>
+              <strong>Release area:</strong>
+              Sets the size of a square release zone.
+            </li>
+
+            <li>
+              <strong>Custom polygon:</strong>
+              Defines a release zone by drawing points directly on the terrain.
+            </li>
+
+            <li>
+              <strong>Start volume:</strong>
+              Defines the total volume of released material.
+            </li>
+
+            <li>
+              <strong>Particles per cubic metre:</strong>
+              Controls the number of simulated macro-particles.
+            </li>
+
+            <li>
+              <strong>Add 1000 m³:</strong>
+              Increases the source volume by 1,000 cubic metres.
+            </li>
+          </ul>
+
+          <p>
+            Very large requested particle counts are limited to a maximum of
+            4,000 simulated particles for performance reasons.
+          </p>
+        </section>
+
+
+        <section>
+          <h3>Particle colour modes</h3>
+
+          <ul>
+            <li>
+              <strong>Velocity:</strong>
+              Colours particles according to their current speed.
+            </li>
+
+            <li>
+              <strong>Distance traveled:</strong>
+              Colours particles according to their accumulated travel distance.
+            </li>
+
+            <li>
+              <strong>Flow thickness:</strong>
+              Estimates local volume per terrain cell.
+            </li>
+          </ul>
+
+          <p>
+            Particle display scale changes the visual size of the rendered
+            particles without changing their physical volume.
+          </p>
+        </section>
+
+
+        <section>
+          <h3>Simulation controls</h3>
+
+          <ul>
+            <li>
+              <strong>Play:</strong>
+              Starts or resumes the simulation.
+            </li>
+
+            <li>
+              <strong>Pause:</strong>
+              Pauses the simulation at its current state.
+            </li>
+
+            <li>
+              <strong>Reset:</strong>
+              Restores the source, particles, terrain, and simulation time.
+            </li>
+
+            <li>
+              <strong>Simulation cache:</strong>
+              Allows previously recorded states to be reviewed with the
+              timeline.
+            </li>
+          </ul>
+
+          <p>
+            When a cached frame is selected, the simulation enters replay mode.
+            Pressing Play resumes the simulation from the selected frame.
+          </p>
+        </section>
+
+
+        <section>
+          <h3>Model limitations</h3>
+
+          <p>
+            This simulator is not an MPM solver, FLIP solver, PIC solver, SPH
+            solver, or complete DEM solver.
+          </p>
+
+          <p>
+            It does not solve pressure, fluid incompressibility, stress tensors,
+            pore-water pressure, angular particle rotation, conservative
+            sediment transport, or complete material constitutive laws.
+          </p>
+
+          <p>
+            Gravity, terrain slope, friction, particle contact, cohesion,
+            erosion, and deposition are simplified for visual and exploratory
+            purposes.
+          </p>
+        </section>
+
+
+        <section>
+          <h3>Impressum</h3>
+
+          <p>
+            © ETH Zürich. Developed at Professur Voser, Institute for Landscape
+            and Urban Studies, ETH Zürich, 2026.
+          </p>
+
+          <p>
+            Assisted by AI (GPT-5.6).
+          </p>
+
+          <p>
+            Inspired by
+            <a
+              class="subtitle-link"
+              href="https://bradcantrell.github.io/sediment-interface/"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Sediment Interface
+            </a>
+            by Bradley Cantrell.
+          </p>
+
+          <p>
+            Professur Voser<br>
+            Institute for Landscape and Urban Studies<br>
+            ETH Zürich, Switzerland
+          </p>
+        </section>
+
+      </div>
+    </div>
+  </dialog>
 
   <script
     type="module"
