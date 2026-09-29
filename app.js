@@ -835,74 +835,78 @@ function fbm(x, z, octaves = 5) {
 }
 
 
-function terrainHeightAt(x, z) {
-  if (
-    !terrainState
-  ) {
-    return 0;
-  }
+function terrainHeightFunction(
+  x,
+  z,
+  sizeX,
+  sizeZ
+) {
+  const nx = x / sizeX;
+  const nz = z / sizeZ;
 
-  const {
-    heights,
-    resolution
-  } = terrainState;
-
-  const coordinates =
-    terrainGridCoordinates(
-      x,
-      z
+  const ridge =
+    Math.exp(
+      -Math.pow(
+        (
+          nz -
+          0.05 -
+          0.08 *
+          Math.sin(nx * 16)
+        ) / 0.25,
+        2
+      )
     );
 
-  const {
-    x0,
-    z0,
-    x1,
-    z1,
-    tx,
-    tz
-  } = coordinates;
-
-  const h00 =
-    heights[
-      z0 * resolution + x0
-    ];
-
-  const h10 =
-    heights[
-      z0 * resolution + x1
-    ];
-
-  const h01 =
-    heights[
-      z1 * resolution + x0
-    ];
-
-  const h11 =
-    heights[
-      z1 * resolution + x1
-    ];
-
-  const h0 =
-    THREE.MathUtils.lerp(
-      h00,
-      h10,
-      tx
+  const secondary =
+    Math.exp(
+      -Math.pow(
+        (
+          nz +
+          0.27 +
+          0.05 *
+          Math.sin(nx * 12)
+        ) / 0.16,
+        2
+      )
     );
 
-  const h1 =
-    THREE.MathUtils.lerp(
-      h01,
-      h11,
-      tx
+  const noise =
+    fbm(
+      nx * 8 + 10,
+      nz * 8 - 4,
+      5
     );
 
-  return THREE.MathUtils.lerp(
-    h0,
-    h1,
-    tz
+  const gullies =
+    Math.pow(
+      Math.abs(
+        fbm(
+          nx * 16,
+          nz * 16,
+          4
+        ) - 0.5
+      ) * 2,
+      1.5
+    );
+
+  const valley =
+    Math.exp(
+      -Math.pow(
+        (nz - 0.03) / 0.09,
+        2
+      )
+    );
+
+  return Math.max(
+    0,
+    22 +
+    150 * ridge +
+    60 * secondary +
+    30 * noise +
+    12 * gullies -
+    35 * valley
   );
 }
-
 
 
 function buildHeightfield(
@@ -1248,32 +1252,44 @@ function createProceduralTerrain() {
   );
 }
 
+function terrainGridCoordinates(x, z) {
+  if (!terrainState) {
+    return null;
+  }
 
-function terrainCoordinates(x, z) {
   const {
     resolution,
     sizeX,
     sizeZ
   } = terrainState;
 
-  const gx =
+  const normalizedX =
     clamp(
-      (x / sizeX + 0.5) *
-      (resolution - 1),
+      x / sizeX + 0.5,
       0,
-      resolution - 1
+      1
     );
 
-  const gz =
+  const normalizedZ =
     clamp(
-      (z / sizeZ + 0.5) *
-      (resolution - 1),
+      z / sizeZ + 0.5,
       0,
-      resolution - 1
+      1
     );
 
-  const x0 = Math.floor(gx);
-  const z0 = Math.floor(gz);
+  const gridX =
+    normalizedX *
+    (resolution - 1);
+
+  const gridZ =
+    normalizedZ *
+    (resolution - 1);
+
+  const x0 =
+    Math.floor(gridX);
+
+  const z0 =
+    Math.floor(gridZ);
 
   const x1 =
     Math.min(
@@ -1289,12 +1305,23 @@ function terrainCoordinates(x, z) {
 
   return {
     x0,
-    x1,
     z0,
+    x1,
     z1,
-    tx: gx - x0,
-    tz: gz - z0
+    tx: gridX - x0,
+    tz: gridZ - z0
   };
+}
+
+
+/*
+  Compatibility alias.
+
+  The new version uses terrainCoordinates().
+  Keeping this alias means either name can be used safely.
+*/
+function terrainCoordinates(x, z) {
+  return terrainGridCoordinates(x, z);
 }
 
 
@@ -1308,45 +1335,72 @@ function terrainHeightAt(x, z) {
     resolution
   } = terrainState;
 
-  const c =
-    terrainCoordinates(x, z);
+  const coordinates =
+    terrainGridCoordinates(
+      x,
+      z
+    );
+
+  if (!coordinates) {
+    return 0;
+  }
+
+  const {
+    x0,
+    z0,
+    x1,
+    z1,
+    tx,
+    tz
+  } = coordinates;
 
   const h00 =
-    heights[c.z0 * resolution + c.x0];
+    heights[
+      z0 * resolution + x0
+    ];
 
   const h10 =
-    heights[c.z0 * resolution + c.x1];
+    heights[
+      z0 * resolution + x1
+    ];
 
   const h01 =
-    heights[c.z1 * resolution + c.x0];
+    heights[
+      z1 * resolution + x0
+    ];
 
   const h11 =
-    heights[c.z1 * resolution + c.x1];
+    heights[
+      z1 * resolution + x1
+    ];
 
   const h0 =
     THREE.MathUtils.lerp(
       h00,
       h10,
-      c.tx
+      tx
     );
 
   const h1 =
     THREE.MathUtils.lerp(
       h01,
       h11,
-      c.tx
+      tx
     );
 
   return THREE.MathUtils.lerp(
     h0,
     h1,
-    c.tz
+    tz
   );
 }
 
 
 function terrainNormalAt(x, z) {
-  if (!terrainState) {
+  if (
+    !terrainState ||
+    !terrainState.normalX
+  ) {
     return scratchNormal.set(
       0,
       1,
@@ -1361,37 +1415,78 @@ function terrainNormalAt(x, z) {
     normalZ
   } = terrainState;
 
-  const c =
-    terrainCoordinates(x, z);
+  const coordinates =
+    terrainGridCoordinates(
+      x,
+      z
+    );
+
+  if (!coordinates) {
+    return scratchNormal.set(
+      0,
+      1,
+      0
+    );
+  }
+
+  const {
+    x0,
+    z0,
+    x1,
+    z1,
+    tx,
+    tz
+  } = coordinates;
+
+  const index00 =
+    z0 * resolution + x0;
+
+  const index10 =
+    z0 * resolution + x1;
+
+  const index01 =
+    z1 * resolution + x0;
+
+  const index11 =
+    z1 * resolution + x1;
 
   function interpolate(array) {
     const a =
       THREE.MathUtils.lerp(
-        array[c.z0 * resolution + c.x0],
-        array[c.z0 * resolution + c.x1],
-        c.tx
+        array[index00],
+        array[index10],
+        tx
       );
 
     const b =
       THREE.MathUtils.lerp(
-        array[c.z1 * resolution + c.x0],
-        array[c.z1 * resolution + c.x1],
-        c.tx
+        array[index01],
+        array[index11],
+        tx
       );
 
     return THREE.MathUtils.lerp(
       a,
       b,
-      c.tz
+      tz
     );
   }
 
-  const nx = interpolate(normalX);
-  const ny = interpolate(normalY);
-  const nz = interpolate(normalZ);
+  const nx =
+    interpolate(normalX);
+
+  const ny =
+    interpolate(normalY);
+
+  const nz =
+    interpolate(normalZ);
 
   const length =
-    Math.hypot(nx, ny, nz) || 1;
+    Math.hypot(
+      nx,
+      ny,
+      nz
+    ) || 1;
 
   return scratchNormal.set(
     nx / length,
@@ -1401,47 +1496,95 @@ function terrainNormalAt(x, z) {
 }
 
 
-function refreshTerrainGeometry() {
-  if (!terrainMesh || !terrainState) {
+function refreshTerrainGeometry(
+  updateSource = true
+) {
+  if (
+    !terrainState ||
+    !terrainMesh
+  ) {
     return;
   }
 
+  const {
+    heights,
+    resolution,
+    sizeX,
+    sizeZ
+  } = terrainState;
+
+  const positionAttribute =
+    terrainMesh.geometry.getAttribute(
+      "position"
+    );
+
   const positions =
-    terrainMesh.geometry
-      .getAttribute("position")
-      .array;
+    positionAttribute.array;
 
   for (
     let i = 0;
-    i < terrainState.heights.length;
+    i < heights.length;
     i++
   ) {
     positions[i * 3 + 1] =
-      terrainState.heights[i];
+      heights[i];
   }
 
-  terrainMesh.geometry
-    .getAttribute("position")
-    .needsUpdate = true;
+  positionAttribute.needsUpdate =
+    true;
 
   terrainMesh.geometry.computeVertexNormals();
   terrainMesh.geometry.computeBoundingBox();
   terrainMesh.geometry.computeBoundingSphere();
 
-  const normals =
+  /*
+    Important: the physics normal field must be rebuilt after
+    the terrain heightfield changes.
+  */
+  const normalField =
     buildNormalField(
-      terrainState.heights,
-      terrainState.resolution,
-      terrainState.sizeX,
-      terrainState.sizeZ
+      heights,
+      resolution,
+      sizeX,
+      sizeZ
     );
 
-  terrainState.normalX = normals.normalX;
-  terrainState.normalY = normals.normalY;
-  terrainState.normalZ = normals.normalZ;
+  terrainState.normalX =
+    normalField.normalX;
 
+  terrainState.normalY =
+    normalField.normalY;
+
+  terrainState.normalZ =
+    normalField.normalZ;
+
+  /*
+    Important: update the red/blue change overlay after the
+    terrain heightfield changes.
+  */
   updateOverlay();
-  updateSourceVisuals();
+
+  if (
+    updateSource
+  ) {
+    updateSourceVisuals();
+  }
+}
+
+
+/*
+  Compatibility alias for code from the older version.
+
+  If any old code still calls
+  refreshTerrainAfterHeightChange(),
+  it will now use the new terrain refresh function.
+*/
+function refreshTerrainAfterHeightChange(
+  updateSource = true
+) {
+  refreshTerrainGeometry(
+    updateSource
+  );
 }
 
 
