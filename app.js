@@ -7419,6 +7419,109 @@ function animate(currentTime) {
   );
 }
 
+/* -------------------------------------------------------------------------- */
+/* DESCRIPTION DIALOG                                                         */
+/* -------------------------------------------------------------------------- */
+
+function openDescriptionDialog() {
+  var dialog =
+    getElement("descriptionDialog");
+
+  if (!dialog) {
+    return;
+  }
+
+  if (typeof dialog.showModal === "function") {
+    if (!dialog.open) {
+      dialog.showModal();
+    }
+
+    return;
+  }
+
+  /*
+    Fallback for browsers without dialog.showModal().
+  */
+  dialog.setAttribute("open", "");
+}
+
+function closeDescriptionDialog() {
+  var dialog =
+    getElement("descriptionDialog");
+
+  if (!dialog) {
+    return;
+  }
+
+  if (
+    typeof dialog.close === "function" &&
+    dialog.open
+  ) {
+    dialog.close();
+    return;
+  }
+
+  dialog.removeAttribute("open");
+}
+
+function bindDescriptionDialog() {
+  var dialog =
+    getElement("descriptionDialog");
+
+  var openButton =
+    getElement("OpenDescription");
+
+  var closeButton =
+    getElement("closeDescription");
+
+  if (!dialog) {
+    console.warn("descriptionDialog was not found.");
+    return;
+  }
+
+  if (openButton) {
+    openButton.addEventListener(
+      "click",
+      function () {
+        openDescriptionDialog();
+      }
+    );
+  } else {
+    console.warn("OpenDescription button was not found.");
+  }
+
+  if (closeButton) {
+    closeButton.addEventListener(
+      "click",
+      function () {
+        closeDescriptionDialog();
+      }
+    );
+  }
+
+  /*
+    Close when clicking the dialog backdrop.
+  */
+  dialog.addEventListener(
+    "click",
+    function (event) {
+      if (event.target === dialog) {
+        closeDescriptionDialog();
+      }
+    }
+  );
+
+  /*
+    Allow closing with the Escape key.
+  */
+  dialog.addEventListener(
+    "cancel",
+    function () {
+      closeDescriptionDialog();
+    }
+  );
+}
+
 
 /* ------------------------------------------------------------------------- */
 /* Initialisation                                                             */
