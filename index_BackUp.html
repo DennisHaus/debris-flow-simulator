@@ -1,0 +1,1678 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <title>Debris Flow Simulator</title>
+
+  <link
+    rel="stylesheet"
+    href="./style.css"
+  >
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+    }
+  }
+  </script>
+</head>
+
+<body>
+  <main id="app">
+
+    <section id="viewer"></section>
+
+    <aside id="interface">
+
+      <header>
+        <div class="eyebrow">
+          © ETH Zurich
+        </div>
+
+        <h1>
+          DEBRIS<br>
+          FLOW<br>
+          SIMULATOR s
+        </h1>
+
+        <p class="description">
+          A simplified terrain-based model for observing sediment movement
+          across changing topography. – For visualisation purposes only.<br><br>
+
+          developed at Professur Voser, Institute for Landscape and Urban
+          Studies, ETH Zurich, 2026 |
+
+          assisted by AI (GPT-5.6) |
+          <a
+          class="subtitle-link"
+          href="https://bradcantrell.github.io/sediment-interface/"
+          target="_blank"
+          >
+          inspired by Sediment Interface, by Bradley Cantrell
+        </a>
+        </p>
+
+        <button
+        id="OpenDescription"
+        class="toolbar-button"
+        type="button"
+        >
+        Read Me
+      </button>
+      </header>
+
+
+      <section class="controls">
+
+        <details>
+          <summary>MATERIAL / FLOW</summary>
+
+          <div class="details-body">
+
+            <div class="control">
+              <div class="label-row">
+                <label for="materialFriction">
+                  PARTICLE FRICTION
+                </label>
+
+                <input
+                  id="materialFrictionNumber"
+                  class="numeric-input"
+                  type="number"
+                  min="0"
+                  max="1"
+                  step="0.01"
+                  value="0.5"
+                >
+              </div>
+
+              <input
+                id="materialFriction"
+                type="range"
+                min="0"
+                max="1"
+                step="0.01"
+                value="0.5"
+              >
+            </div>
+
+
+            <div class="control">
+              <div class="label-row">
+                <label for="terrainFriction">
+                  KINETIC TERRAIN FRICTION
+                </label>
+
+                <input
+                  id="terrainFrictionNumber"
+                  class="numeric-input"
+                  type="number"
+                  min="0"
+                  max="1"
+                  step="0.01"
+                  value="0.5"
+                >
+              </div>
+
+              <input
+                id="terrainFriction"
+                type="range"
+                min="0"
+                max="1"
+                step="0.01"
+                value="0.5"
+              >
+            </div>
+
+
+            <div class="control">
+              <div class="label-row">
+                <label for="staticFrictionFactor">
+                  STATIC FRICTION FACTOR ×
+                </label>
+
+                <input
+                  id="staticFrictionFactorNumber"
+                  class="numeric-input"
+                  type="number"
+                  min="1"
+                  max="2"
+                  step="0.01"
+                  value="1.08"
+                >
+              </div>
+
+              <input
+                id="staticFrictionFactor"
+                type="range"
+                min="1"
+                max="2"
+                step="0.01"
+                value="1.08"
+              >
+            </div>
+
+
+            <div class="control">
+              <div class="label-row">
+                <label for="particleCohesion">
+                  PARTICLE COHESION
+                </label>
+
+                <input
+                  id="particleCohesionNumber"
+                  class="numeric-input"
+                  type="number"
+                  min="0"
+                  max="1"
+                  step="0.01"
+                  value="0.18"
+                >
+              </div>
+
+              <input
+                id="particleCohesion"
+                type="range"
+                min="0"
+                max="1"
+                step="0.01"
+                value="0.18"
+              >
+            </div>
+
+
+            <div class="control">
+              <div class="label-row">
+                <label for="cohesionRestDistanceFactor">
+                  COHESION REST DISTANCE × RADIUS
+                </label>
+
+                <input
+                  id="cohesionRestDistanceFactorNumber"
+                  class="numeric-input"
+                  type="number"
+                  min="2"
+                  max="4"
+                  step="0.05"
+                  value="2.05"
+                >
+              </div>
+
+              <input
+                id="cohesionRestDistanceFactor"
+                type="range"
+                min="2"
+                max="4"
+                step="0.05"
+                value="2.05"
+              >
+            </div>
+
+
+            <div class="control">
+              <div class="label-row">
+                <label for="contactDamping">
+                  CONTACT DAMPING
+                </label>
+
+                <input
+                  id="contactDampingNumber"
+                  class="numeric-input"
+                  type="number"
+                  min="0"
+                  max="1"
+                  step="0.01"
+                  value="0.22"
+                >
+              </div>
+
+              <input
+                id="contactDamping"
+                type="range"
+                min="0"
+                max="1"
+                step="0.01"
+                value="0.22"
+              >
+            </div>
+
+
+            <div class="control">
+              <div class="label-row">
+                <label for="flowDragLength">
+                  FLOW DRAG LENGTH m
+                </label>
+
+                <input
+                  id="flowDragLengthNumber"
+                  class="numeric-input"
+                  type="number"
+                  min="20"
+                  max="500"
+                  step="5"
+                  value="90"
+                >
+              </div>
+
+              <input
+                id="flowDragLength"
+                type="range"
+                min="20"
+                max="500"
+                step="5"
+                value="90"
+              >
+            </div>
+
+
+            <div class="control">
+              <div class="label-row">
+                <label for="startVelocity">
+                  START VELOCITY m/s
+                </label>
+
+                <input
+                  id="startVelocityNumber"
+                  class="numeric-input"
+                  type="number"
+                  min="0"
+                  max="10"
+                  step="0.1"
+                  value="0"
+                >
+              </div>
+
+              <input
+                id="startVelocity"
+                type="range"
+                min="0"
+                max="10"
+                step="0.1"
+                value="0"
+              >
+            </div>
+
+
+            <div class="control">
+              <div class="label-row">
+                <label for="simulationSpeed">
+                  SIMULATION SPEED ×
+                </label>
+
+                <input
+                  id="simulationSpeedNumber"
+                  class="numeric-input"
+                  type="number"
+                  min="0.25"
+                  max="5"
+                  step="0.25"
+                  value="1"
+                >
+              </div>
+
+              <input
+                id="simulationSpeed"
+                type="range"
+                min="0.25"
+                max="5"
+                step="0.25"
+                value="1"
+              >
+            </div>
+
+
+            <div class="control">
+              <div class="label-row">
+                <label for="startDirectionMode">
+                  START DIRECTION
+                </label>
+
+                <select id="startDirectionMode">
+                  <option value="downhill">
+                    DOWNHILL
+                  </option>
+
+                  <option value="fixed">
+                    FIXED HEADING
+                  </option>
+
+                  <option value="radial">
+                    RADIAL FROM SOURCE
+                  </option>
+
+                  <option value="vector">
+                    USER VECTOR
+                  </option>
+                </select>
+              </div>
+            </div>
+
+
+            <div
+              id="fixedDirectionControl"
+              class="control hidden"
+            >
+              <div class="label-row">
+                <label for="directionAngle">
+                  HEADING °
+                </label>
+
+                <input
+                  id="directionAngleNumber"
+                  class="numeric-input"
+                  type="number"
+                  min="-180"
+                  max="180"
+                  step="1"
+                  value="0"
+                >
+              </div>
+
+              <input
+                id="directionAngle"
+                type="range"
+                min="-180"
+                max="180"
+                step="1"
+                value="0"
+              >
+            </div>
+
+
+            <div
+              id="userDirectionXControl"
+              class="control hidden"
+            >
+              <div class="label-row">
+                <label for="directionX">
+                  VECTOR X
+                </label>
+
+                <input
+                  id="directionXNumber"
+                  class="numeric-input"
+                  type="number"
+                  min="-1"
+                  max="1"
+                  step="0.01"
+                  value="0"
+                >
+              </div>
+
+              <input
+                id="directionX"
+                type="range"
+                min="-1"
+                max="1"
+                step="0.01"
+                value="0"
+              >
+            </div>
+
+
+            <div
+              id="userDirectionZControl"
+              class="control hidden"
+            >
+              <div class="label-row">
+                <label for="directionZ">
+                  VECTOR Z
+                </label>
+
+                <input
+                  id="directionZNumber"
+                  class="numeric-input"
+                  type="number"
+                  min="-1"
+                  max="1"
+                  step="0.01"
+                  value="1"
+                >
+              </div>
+
+              <input
+                id="directionZ"
+                type="range"
+                min="-1"
+                max="1"
+                step="0.01"
+                value="1"
+              >
+            </div>
+
+          </div>
+        </details>
+
+
+        <details>
+          <summary>EROSION / DEPOSITION</summary>
+
+          <div class="details-body">
+
+            <div class="control">
+              <div class="label-row">
+                <label for="terrainEvolutionEnabled">
+                  TERRAIN EVOLUTION
+                </label>
+
+                <input
+                  id="terrainEvolutionEnabled"
+                  type="checkbox"
+                  checked
+                >
+              </div>
+            </div>
+
+
+            <div class="control">
+              <div class="label-row">
+                <label for="showChangeOverlay">
+                  SHOW CHANGE OVERLAY
+                </label>
+
+                <input
+                  id="showChangeOverlay"
+                  type="checkbox"
+                >
+              </div>
+
+              <div
+                id="changeLegend"
+                class="change-legend hidden"
+              >
+                <span class="deposition">
+                  BLUE = DEPOSITION
+                </span>
+                ·
+                <span class="erosion">
+                  RED = EROSION
+                </span>
+              </div>
+            </div>
+
+
+            <div class="control">
+              <div class="label-row">
+                <label for="changeOverlayScale">
+                  CHANGE DISPLAY SCALE m
+                </label>
+
+                <input
+                  id="changeOverlayScaleNumber"
+                  class="numeric-input"
+                  type="number"
+                  min="0.005"
+                  max="2"
+                  step="0.005"
+                  value="0.05"
+                >
+              </div>
+
+              <input
+                id="changeOverlayScale"
+                type="range"
+                min="0.005"
+                max="2"
+                step="0.005"
+                value="0.05"
+              >
+            </div>
+
+
+            <div class="control">
+              <div class="label-row">
+                <label for="erosionRate">
+                  EROSION RATE % / s
+                </label>
+
+                <input
+                  id="erosionRateNumber"
+                  class="numeric-input"
+                  type="number"
+                  min="0"
+                  max="10"
+                  step="0.01"
+                  value="0.6"
+                >
+              </div>
+
+              <input
+                id="erosionRate"
+                type="range"
+                min="0"
+                max="10"
+                step="0.01"
+                value="0.6"
+              >
+            </div>
+
+
+            <div class="control">
+              <div class="label-row">
+                <label for="depositionRate">
+                  DEPOSITION RATE % / s
+                </label>
+
+                <input
+                  id="depositionRateNumber"
+                  class="numeric-input"
+                  type="number"
+                  min="0"
+                  max="10"
+                  step="0.01"
+                  value="4"
+                >
+              </div>
+
+              <input
+                id="depositionRate"
+                type="range"
+                min="0"
+                max="10"
+                step="0.01"
+                value="4"
+              >
+            </div>
+
+
+            <div class="control">
+              <div class="label-row">
+                <label for="erosionStartSpeed">
+                  EROSION START SPEED m/s
+                </label>
+
+                <input
+                  id="erosionStartSpeedNumber"
+                  class="numeric-input"
+                  type="number"
+                  min="0"
+                  max="5"
+                  step="0.05"
+                  value="0.45"
+                >
+              </div>
+
+              <input
+                id="erosionStartSpeed"
+                type="range"
+                min="0"
+                max="5"
+                step="0.05"
+                value="0.45"
+              >
+            </div>
+
+
+            <div class="control">
+              <div class="label-row">
+                <label for="depositionSpeed">
+                  DEPOSITION SPEED m/s
+                </label>
+
+                <input
+                  id="depositionSpeedNumber"
+                  class="numeric-input"
+                  type="number"
+                  min="0.01"
+                  max="2"
+                  step="0.01"
+                  value="0.28"
+                >
+              </div>
+
+              <input
+                id="depositionSpeed"
+                type="range"
+                min="0.01"
+                max="2"
+                step="0.01"
+                value="0.28"
+              >
+            </div>
+
+          </div>
+        </details>
+
+
+        <details>
+          <summary>TERRAIN</summary>
+
+          <div class="details-body">
+
+            <div class="control">
+              <div class="label-row">
+                <label for="terrainResolution">
+                  TERRAIN RESOLUTION
+                </label>
+
+                <input
+                  id="terrainResolutionNumber"
+                  class="numeric-input"
+                  type="number"
+                  min="64"
+                  max="768"
+                  step="1"
+                  value="256"
+                >
+              </div>
+
+              <input
+                id="terrainResolution"
+                type="range"
+                min="64"
+                max="768"
+                step="1"
+                value="256"
+              >
+            </div>
+
+          </div>
+        </details>
+
+
+        <details>
+          <summary>MODEL SCALE / ORIENTATION</summary>
+
+          <div class="details-body">
+
+            <div class="control">
+              <div class="label-row">
+                <label for="modelScale">
+                  MODEL SCALE ×
+                </label>
+
+                <input
+                  id="modelScaleNumber"
+                  class="numeric-input"
+                  type="number"
+                  min="0.1"
+                  max="10"
+                  step="0.1"
+                  value="1"
+                >
+              </div>
+
+              <input
+                id="modelScale"
+                type="range"
+                min="0.1"
+                max="10"
+                step="0.1"
+                value="1"
+              >
+            </div>
+
+
+            <div class="control">
+              <div class="label-row">
+                <label for="metersPerModelUnit">
+                  METRES / MODEL UNIT
+                </label>
+
+                <input
+                  id="metersPerModelUnitNumber"
+                  class="numeric-input"
+                  type="number"
+                  min="0.01"
+                  max="100"
+                  step="0.01"
+                  value="1"
+                >
+              </div>
+
+              <input
+                id="metersPerModelUnit"
+                type="range"
+                min="0.01"
+                max="100"
+                step="0.01"
+                value="1"
+              >
+            </div>
+
+
+            <div class="control">
+              <div class="label-row">
+                <label for="verticalExaggeration">
+                  VERTICAL SCALE ×
+                </label>
+
+                <input
+                  id="verticalScaleNumber"
+                  class="numeric-input"
+                  type="number"
+                  min="0.1"
+                  max="10"
+                  step="0.1"
+                  value="0.3"
+                >
+              </div>
+
+              <input
+                id="verticalExaggeration"
+                type="range"
+                min="0.1"
+                max="10"
+                step="0.1"
+                value="1"
+              >
+            </div>
+
+
+            <div class="control">
+              <div class="label-row">
+                <label for="depthScale">
+                  Z AXIS SCALE ×
+                </label>
+
+                <input
+                  id="depthScaleNumber"
+                  class="numeric-input"
+                  type="number"
+                  min="0.1"
+                  max="10"
+                  step="0.1"
+                  value="1"
+                >
+              </div>
+
+              <input
+                id="depthScale"
+                type="range"
+                min="0.1"
+                max="10"
+                step="0.1"
+                value="1"
+              >
+            </div>
+
+
+            <div class="control">
+              <div class="label-row">
+                <label for="rotationX">
+                  ROTATE X °
+                </label>
+
+                <input
+                  id="rotationXNumber"
+                  class="numeric-input"
+                  type="number"
+                  min="-180"
+                  max="180"
+                  step="45"
+                  value="0"
+                >
+              </div>
+
+              <input
+                id="rotationX"
+                type="range"
+                min="-180"
+                max="180"
+                step="45"
+                value="0"
+              >
+            </div>
+
+
+            <div class="control">
+              <div class="label-row">
+                <label for="rotationY">
+                  ROTATE Y °
+                </label>
+
+                <input
+                  id="rotationYNumber"
+                  class="numeric-input"
+                  type="number"
+                  min="-180"
+                  max="180"
+                  step="45"
+                  value="0"
+                >
+              </div>
+
+              <input
+                id="rotationY"
+                type="range"
+                min="-180"
+                max="180"
+                step="45"
+                value="0"
+              >
+            </div>
+
+
+            <div class="control">
+              <div class="label-row">
+                <label for="rotationZ">
+                  ROTATE Z °
+                </label>
+
+                <input
+                  id="rotationZNumber"
+                  class="numeric-input"
+                  type="number"
+                  min="-180"
+                  max="180"
+                  step="45"
+                  value="0"
+                >
+              </div>
+
+              <input
+                id="rotationZ"
+                type="range"
+                min="-180"
+                max="180"
+                step="45"
+                value="0"
+              >
+            </div>
+
+          </div>
+        </details>
+
+
+        <details>
+          <summary>SOURCE MATERIAL</summary>
+
+          <div class="details-body">
+
+            <div class="control">
+              <div class="label-row">
+                <label for="releaseShapeMode">
+                  RELEASE SHAPE
+                </label>
+
+                <select id="releaseShapeMode">
+                  <option value="rectangle">
+                    SQUARE AREA
+                  </option>
+
+                  <option value="polygon">
+                    CUSTOM POLYGON
+                  </option>
+                </select>
+              </div>
+            </div>
+
+
+            <div
+              id="rectangleAreaControl"
+              class="control"
+            >
+              <div class="label-row">
+                <label for="sourceArea">
+                  RELEASE AREA m²
+                </label>
+
+                <input
+                  id="sourceAreaNumber"
+                  class="numeric-input"
+                  type="number"
+                  min="100"
+                  max="100000"
+                  step="100"
+                  value="3500"
+                >
+              </div>
+
+              <input
+                id="sourceArea"
+                type="range"
+                min="100"
+                max="100000"
+                step="100"
+                value="3500"
+              >
+            </div>
+
+
+            <div
+              id="customShapeControl"
+              class="shape-control hidden"
+            >
+              <button
+                id="drawReleaseShapeButton"
+                type="button"
+              >
+                DRAW RELEASE SHAPE
+              </button>
+
+              <button
+                id="clearReleaseShapeButton"
+                type="button"
+              >
+                CLEAR CUSTOM SHAPE
+              </button>
+
+              <div id="drawShapeHint">
+                Hold CMD or CTRL and left-click terrain points.
+                Press ENTER to finish.
+              </div>
+
+              <div id="releaseAreaReadout">
+                NO CUSTOM SHAPE
+              </div>
+            </div>
+
+
+            <div class="control">
+              <div class="label-row">
+                <label for="sourceVolume">
+                  START VOLUME m³
+                </label>
+
+                <input
+                  id="sourceVolumeNumber"
+                  class="numeric-input"
+                  type="number"
+                  min="1000"
+                  max="500000"
+                  step="1000"
+                  value="7000"
+                >
+              </div>
+
+              <input
+                id="sourceVolume"
+                type="range"
+                min="1000"
+                max="500000"
+                step="1000"
+                value="7000"
+              >
+            </div>
+
+
+            <div class="control">
+              <div class="label-row">
+                <label for="particleDensity">
+                  PARTICLES / m³
+                </label>
+
+                <input
+                  id="particleDensityNumber"
+                  class="numeric-input"
+                  type="number"
+                  min="0.001"
+                  max="10"
+                  step="0.000001"
+                  value="0.142857"
+                >
+              </div>
+
+              <input
+                id="particleDensity"
+                type="range"
+                min="0.001"
+                max="10"
+                step="0.000001"
+                value="0.142857"
+              >
+            </div>
+
+
+            <div class="control">
+              <div class="label-row">
+                <label for="colorMode">
+                  COLOR BY
+                </label>
+
+                <select id="colorMode">
+                  <option value="velocity">
+                    VELOCITY
+                  </option>
+
+                  <option value="distance">
+                    DISTANCE TRAVELED
+                  </option>
+
+                  <option value="thickness">
+                    FLOW THICKNESS
+                  </option>
+                </select>
+              </div>
+            </div>
+
+
+            <div class="control">
+              <div class="label-row">
+                <label for="particleSize">
+                  PARTICLE DISPLAY SCALE ×
+                </label>
+
+                <input
+                  id="particleSizeNumber"
+                  class="numeric-input"
+                  type="number"
+                  min="0.25"
+                  max="3"
+                  step="0.05"
+                  value="2"
+                >
+              </div>
+
+              <input
+                id="particleSize"
+                type="range"
+                min="0.25"
+                max="3"
+                step="0.05"
+                value="2"
+              >
+            </div>
+
+          </div>
+        </details>
+
+
+        <div class="button-row">
+          <button
+            id="playButton"
+            type="button"
+          >
+            PLAY
+          </button>
+
+          <button
+            id="resetButton"
+            type="button"
+          >
+            RESET
+          </button>
+        </div>
+
+
+        <div class="button-row secondary">
+  <button
+    id="addButton"
+    type="button"
+  >
+    ADD 1000 m³
+  </button>
+  <button
+    id="resetOrientationButton"
+    type="button"
+  >
+    RESET ROTATION
+  </button>
+</div>
+
+<div class="button-row secondary">
+  <button
+    id="terrainButton"
+    type="button"
+  >
+    NEW TERRAIN
+  </button>
+
+  <button
+    id="exampleTerrainButton"
+    type="button"
+  >
+    EXAMPLE TERRAIN
+  </button>
+</div>
+
+      </section>
+
+
+      <div id="dropZone">
+        DROP 3D TERRAIN HERE
+        <span>PLY / STL / OBJ</span>
+      </div>
+
+      <input
+        id="modelFileInput"
+        type="file"
+        accept=".ply,.stl,.obj"
+        hidden
+      >
+
+      <button
+        id="chooseModelButton"
+        class="file-button"
+        type="button"
+      >
+        CHOOSE 3D MODEL
+      </button>
+
+
+      <div id="sourceHint">
+        SHIFT + LEFT CLICK TO MOVE SOURCE<br>
+        CMD / CTRL + LEFT CLICK TO DRAW CUSTOM SHAPE
+      </div>
+
+
+      <div
+        id="timelineWrap"
+        class="timeline hidden"
+      >
+        <div class="timeline-heading">
+          <span>SIMULATION CACHE</span>
+
+          <span id="timelineReadout">
+            0.00 s
+          </span>
+        </div>
+
+        <input
+          id="timeline"
+          type="range"
+          min="0"
+          max="0"
+          step="1"
+          value="0"
+        >
+
+        <div class="timeline-note">
+          Drag to review cached positions.
+          PLAY resumes from the selected frame.
+        </div>
+      </div>
+
+
+      <footer>
+        <span id="status">
+          PAUSED
+        </span>
+
+        <span id="particleCountStatus">
+          1,000 particles
+        </span>
+      </footer>
+
+    </aside>
+
+  </main>
+
+  <dialog
+    id="descriptionDialog"
+    class="description-dialog"
+    aria-labelledby="descriptionTitle"
+  >
+    <div class="description-dialog-inner">
+
+      <div class="description-dialog-header">
+        <h2 id="descriptionTitle">
+          Debris Flow Simulator – Read Me
+        </h2>
+
+        <button
+          id="closeDescription"
+          class="description-close"
+          type="button"
+          aria-label="Close description"
+        >
+          &times;
+        </button>
+      </div>
+
+
+      <div class="description-dialog-body">
+
+        <section>
+          <h3>Overview</h3>
+
+          <p>
+            The Debris Flow Simulator is a simplified terrain-based model for
+            observing sediment movement across changing topography.
+          </p>
+
+          <p>
+            It is intended for visualisation, design exploration, and comparison
+            of parameter settings. It should not be used for engineering design,
+            hazard prediction, legal analysis, or quantitative forecasting of a
+            real debris-flow event.
+          </p>
+        </section>
+
+
+        <section>
+          <h3>Viewer functions</h3>
+
+          <p>
+            The viewer displays either a procedurally generated alpine terrain
+            or an imported PLY, STL, or OBJ terrain model.
+          </p>
+
+          <ul>
+            <li>
+              <strong>OrbitControls:</strong>
+              Rotate, zoom, and pan the terrain view.
+            </li>
+
+            <li>
+              <strong>New Terrain:</strong>
+              Generates a new procedural alpine terrain.
+            </li>
+
+            <li>
+              <strong>Example Terrain:</strong>
+              Loads the example terrain from Kandersteg.
+            </li>
+
+            <li>
+              <strong>Choose 3D Model:</strong>
+              Imports a PLY, STL, or OBJ terrain model.
+            </li>
+
+            <li>
+              <strong>Drop 3D Terrain Here:</strong>
+              Import a terrain model by dragging it into the drop zone.
+            </li>
+          </ul>
+        </section>
+
+
+        <section>
+          <h3>Navigation and source placement</h3>
+
+          <ul>
+            <li>
+              <strong>Shift + left click:</strong>
+              Move the release source across the terrain.
+            </li>
+
+            <li>
+              <strong>Cmd / Ctrl + left click:</strong>
+              Add points to a custom polygonal release area.
+            </li>
+
+            <li>
+              <strong>Enter:</strong>
+              Finish drawing a custom release polygon.
+            </li>
+
+            <li>
+              <strong>Escape:</strong>
+              Cancel the current polygon drawing.
+            </li>
+
+            <li>
+              <strong>Backspace:</strong>
+              Remove the last polygon point.
+            </li>
+          </ul>
+
+          <p>
+            Source placement is only available while the simulation is paused.
+          </p>
+        </section>
+
+
+        <section>
+          <h3>Terrain representation</h3>
+
+          <p>
+            The terrain is represented as a regular heightfield. Each horizontal
+            position has one terrain height and one interpolated terrain normal.
+          </p>
+
+          <p>
+            This makes collision calculations efficient, but means that
+            overhangs, caves, vertical walls, bridges, and multiple terrain
+            layers are not represented by the physics.
+          </p>
+        </section>
+
+
+        <section>
+          <h3>Material and flow</h3>
+
+          <p>
+            The material model uses macro-particles. Each macro-particle
+            represents a volume parcel rather than a single physical grain.
+          </p>
+
+          <ul>
+            <li>
+              <strong>Particle friction:</strong>
+              Controls friction between material particles.
+            </li>
+
+            <li>
+              <strong>Kinetic terrain friction:</strong>
+              Controls friction between particles and the terrain.
+            </li>
+
+            <li>
+              <strong>Static friction factor:</strong>
+              Controls when particles remain at rest on a slope.
+            </li>
+
+            <li>
+              <strong>Particle cohesion:</strong>
+              Controls attraction between particles that are separated from
+              their preferred rest distance.
+            </li>
+
+            <li>
+              <strong>Contact damping:</strong>
+              Reduces jitter and tangential motion during particle contact.
+            </li>
+
+            <li>
+              <strong>Flow drag length:</strong>
+              Controls velocity-dependent drag near the terrain.
+            </li>
+
+            <li>
+              <strong>Start velocity:</strong>
+              Defines the initial particle velocity.
+            </li>
+
+            <li>
+              <strong>Simulation speed:</strong>
+              Changes the playback speed of the simulation.
+            </li>
+          </ul>
+        </section>
+
+
+        <section>
+          <h3>Start direction</h3>
+
+          <p>
+            The initial direction of the material can be controlled using four
+            different modes.
+          </p>
+
+          <ul>
+            <li>
+              <strong>Downhill:</strong>
+              Starts particles in the direction of the local terrain slope.
+            </li>
+
+            <li>
+              <strong>Fixed heading:</strong>
+              Uses a specified horizontal angle.
+            </li>
+
+            <li>
+              <strong>Radial from source:</strong>
+              Sends particles away from the source centre.
+            </li>
+
+            <li>
+              <strong>User vector:</strong>
+              Uses the specified X and Z vector components.
+            </li>
+          </ul>
+        </section>
+
+
+        <section>
+          <h3>Erosion and deposition</h3>
+
+          <p>
+            When terrain evolution is enabled, the terrain can change during the
+            simulation.
+          </p>
+
+          <ul>
+            <li>
+              Fast-moving particles in contact with sufficiently inclined terrain
+              erode a small amount of terrain.
+            </li>
+
+            <li>
+              Particles that have travelled and later come to rest deposit a
+              small amount of material.
+            </li>
+
+            <li>
+              Terrain changes are applied periodically rather than after every
+              particle interaction.
+            </li>
+
+            <li>
+              The process is a visual heightfield approximation and is not a
+              fully mass-conservative sediment budget.
+            </li>
+          </ul>
+
+          <p>
+            The erosion and deposition rates are expressed as percentages per
+            second. The erosion start speed and deposition speed determine when
+            these processes become active.
+          </p>
+        </section>
+
+
+        <section>
+          <h3>Change overlay</h3>
+
+          <p>
+            The change overlay shows the accumulated history of terrain
+            modification.
+          </p>
+
+          <ul>
+            <li>
+              <strong>Blue:</strong>
+              Deposition.
+            </li>
+
+            <li>
+              <strong>Red:</strong>
+              Erosion.
+            </li>
+          </ul>
+
+          <p>
+            These colours describe terrain change and not the current particle
+            velocity.
+          </p>
+        </section>
+
+
+        <section>
+          <h3>Terrain scale and orientation</h3>
+
+          <ul>
+            <li>
+              <strong>Model scale:</strong>
+              Changes the horizontal scale of the terrain.
+            </li>
+
+            <li>
+              <strong>Metres per model unit:</strong>
+              Sets the scale of imported terrain models.
+            </li>
+
+            <li>
+              <strong>Vertical scale:</strong>
+              Exaggerates or reduces terrain height.
+            </li>
+
+            <li>
+              <strong>Z axis scale:</strong>
+              Changes the terrain depth relative to its width.
+            </li>
+
+            <li>
+              <strong>Rotate X, Y, and Z:</strong>
+              Changes the orientation of imported terrain.
+            </li>
+
+            <li>
+              <strong>Reset rotation:</strong>
+              Restores the default model orientation.
+            </li>
+          </ul>
+        </section>
+
+
+        <section>
+          <h3>Source material</h3>
+
+          <p>
+            The release source can be defined as either a square area or a
+            custom polygon.
+          </p>
+
+          <ul>
+            <li>
+              <strong>Release area:</strong>
+              Sets the size of a square release zone.
+            </li>
+
+            <li>
+              <strong>Custom polygon:</strong>
+              Defines a release zone by drawing points directly on the terrain.
+            </li>
+
+            <li>
+              <strong>Start volume:</strong>
+              Defines the total volume of released material.
+            </li>
+
+            <li>
+              <strong>Particles per cubic metre:</strong>
+              Controls the number of simulated macro-particles.
+            </li>
+
+            <li>
+              <strong>Add 1000 m³:</strong>
+              Increases the source volume by 1,000 cubic metres.
+            </li>
+          </ul>
+
+          <p>
+            Very large requested particle counts are limited to a maximum of
+            4,000 simulated particles for performance reasons.
+          </p>
+        </section>
+
+
+        <section>
+          <h3>Particle colour modes</h3>
+
+          <ul>
+            <li>
+              <strong>Velocity:</strong>
+              Colours particles according to their current speed.
+            </li>
+
+            <li>
+              <strong>Distance traveled:</strong>
+              Colours particles according to their accumulated travel distance.
+            </li>
+
+            <li>
+              <strong>Flow thickness:</strong>
+              Estimates local volume per terrain cell.
+            </li>
+          </ul>
+
+          <p>
+            Particle display scale changes the visual size of the rendered
+            particles without changing their physical volume.
+          </p>
+        </section>
+
+
+        <section>
+          <h3>Simulation controls</h3>
+
+          <ul>
+            <li>
+              <strong>Play:</strong>
+              Starts or resumes the simulation.
+            </li>
+
+            <li>
+              <strong>Pause:</strong>
+              Pauses the simulation at its current state.
+            </li>
+
+            <li>
+              <strong>Reset:</strong>
+              Restores the source, particles, terrain, and simulation time.
+            </li>
+
+            <li>
+              <strong>Simulation cache:</strong>
+              Allows previously recorded states to be reviewed with the
+              timeline.
+            </li>
+          </ul>
+
+          <p>
+            When a cached frame is selected, the simulation enters replay mode.
+            Pressing Play resumes the simulation from the selected frame.
+          </p>
+        </section>
+
+
+        <section>
+          <h3>Model limitations</h3>
+
+          <p>
+            This simulator is not an MPM solver, FLIP solver, PIC solver, SPH
+            solver, or complete DEM solver.
+          </p>
+
+          <p>
+            It does not solve pressure, fluid incompressibility, stress tensors,
+            pore-water pressure, angular particle rotation, conservative
+            sediment transport, or complete material constitutive laws.
+          </p>
+
+          <p>
+            Gravity, terrain slope, friction, particle contact, cohesion,
+            erosion, and deposition are simplified for visual and exploratory
+            purposes.
+          </p>
+        </section>
+
+
+        <section>
+          <h3>Impressum</h3>
+
+          <p>
+            © ETH Zürich. Developed at Professur Voser, Institute for Landscape
+            and Urban Studies, ETH Zürich, 2026. Coding assisted by AI (GPT-5.6).
+            Concept inspired by
+            <a
+              class="subtitle-link"
+              href="https://bradcantrell.github.io/sediment-interface/"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Sediment Interface
+            </a>
+            by Bradley Cantrell.
+          </p>
+
+          <p>
+            Contract Inforamtion:</br>
+                  <strong>Professur Voser</strong></br>
+                  c/o Dennis Häusler</br>
+                  Institute for Landscape and Urban Studies</br>
+                  ETH Zürich, Switzerland</br>
+                  haeusler@arch.ethz.ch
+          </p>
+        </section>
+
+      </div>
+    </div>
+  </dialog>
+
+  <script
+    type="module"
+    src="./app.js"
+  ></script>
+</body>
+</html>
