@@ -487,7 +487,7 @@ footer {
   border: none;
   border-radius: 0px;
   background: rgba(255, 255, 255, 0.65);
-  color: #1d1d1b;
+  color: rgba(255, 255, 255, 0.65);
   box-shadow: 0 24px 80px rgba(0, 0, 0, 0.3);
 }
 
