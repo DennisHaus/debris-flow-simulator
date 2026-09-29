@@ -511,7 +511,6 @@ footer {
   gap: 1rem;
   padding: 1rem 1.25rem;
   border-bottom: 0px solid rgba(0, 0, 0, 0);
-  background: rgba(255, 255, 255, 0.65);
   color: rgba(0, 0, 0, 1);
   text-transform: uppercase;
 
@@ -540,8 +539,7 @@ footer {
 }
 
 .description-close:hover {
-  background: rgba(255, 255, 255, 0.65);
-  color: rgba(0, 0, 0, 1);
+  color: rgba(0, 0, 0, 0.5);
 }
 
 .description-dialog-body {
@@ -558,8 +556,9 @@ footer {
 }
 
 .description-dialog-body h3 {
-  margin: 0 0 0.5rem;
+  margin: 0 0 .75rem;
   font-size: 1rem;
+  text-transform: uppercase;
 }
 
 .description-dialog-body p {
