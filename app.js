@@ -891,43 +891,33 @@ function terrainHeightFunction(
   sizeX,
   sizeZ
 ) {
-  /*
-    Normalised terrain coordinates.
-    The range is approximately -0.5 to +0.5.
-  */
   const nx =
     x / sizeX;
 
   const nz =
     z / sizeZ;
 
-
-  /*
-    Low-frequency domain warping bends the valleys
-    and ridges so that they do not look like straight
-    mathematical bands.
-  */
   const warpX =
     (
       fbm(
-        nx * 3.2 + 12.4,
-        nz * 3.2 - 7.8,
+        nx * 7 + 4.1,
+        nz * 7 - 1.7,
         4
       ) -
       0.5
     ) *
-    0.09;
+    0.075;
 
   const warpZ =
     (
       fbm(
-        nx * 3.2 - 5.1,
-        nz * 3.2 + 9.6,
+        nx * 7 - 3.5,
+        nz * 7 + 2.4,
         4
       ) -
       0.5
     ) *
-    0.09;
+    0.075;
 
   const warpedX =
     nx + warpX;
@@ -935,209 +925,111 @@ function terrainHeightFunction(
   const warpedZ =
     nz + warpZ;
 
-
-  /*
-    Main curved glacial valley.
-  */
-  const mainValleyAxis =
-    0.025 *
+  const ridgeLine =
+    0.035 *
       Math.sin(
-        (warpedX + 0.5) * 11
+        warpedX * 18
       ) +
     0.018 *
       Math.sin(
-        (warpedX + 0.5) * 27
+        warpedX * 43
       );
 
-  const mainValleyDistance =
+  const ridgeDistance =
     warpedZ -
-    mainValleyAxis;
+    ridgeLine;
 
-  const valleyWidth =
-    0.18 +
-    0.025 *
+  const mainRidge =
+    Math.exp(
+      -Math.pow(
+        ridgeDistance / 0.22,
+        2
+      )
+    );
+
+  const ridgeVariation =
+    0.58 +
+    0.42 *
       fbm(
-        warpedX * 4 + 4,
-        warpedZ * 4 - 2,
-        3
+        warpedX * 5.5 + 9,
+        warpedZ * 5.5 - 4,
+        5
       );
 
-  const broadValley =
-    Math.exp(
-      -Math.pow(
-        mainValleyDistance /
-          valleyWidth,
-        2
-      )
-    );
-
-  const innerValley =
-    Math.exp(
-      -Math.pow(
-        mainValleyDistance /
-          (
-            valleyWidth *
-            0.43
-          ),
-        2
-      )
-    );
-
-
-  /*
-    Mountain shoulders on both sides of the valley.
-  */
-  const leftShoulder =
+  const secondaryRidge =
+    0.40 *
     Math.exp(
       -Math.pow(
         (
-          mainValleyDistance +
-          0.245
+          warpedZ +
+          0.26 +
+          0.04 *
+            Math.sin(
+              warpedX * 12
+            )
         ) /
-          0.205,
+          0.15,
         2
       )
     );
 
-  const rightShoulder =
-    Math.exp(
-      -Math.pow(
-        (
-          mainValleyDistance -
-          0.245
-        ) /
-          0.205,
-        2
-      )
-    );
-
-
-  /*
-    A smaller side valley adds variation without
-    breaking the main alpine structure.
-  */
-  const sideValleyAxis =
-    -0.30 +
-    0.045 *
-      Math.sin(
-        (warpedX + 0.5) * 13
-      );
-
-  const sideValleyDistance =
-    warpedZ -
-    sideValleyAxis;
-
-  const sideValley =
-    Math.exp(
-      -Math.pow(
-        sideValleyDistance /
-          0.105,
-        2
-      )
-    );
-
-
-  /*
-    Broad regional relief.
-  */
-  const regionalNoise =
+  const alpineNoise =
     fbm(
-      warpedX * 2.8 + 8,
-      warpedZ * 2.8 - 6,
-      4
-    );
-
-  const mountainMass =
-    ridgedFbm(
-      warpedX * 2.7 + 2,
-      warpedZ * 2.7 - 4,
+      warpedX * 8 + 20,
+      warpedZ * 8 - 15,
       5
     );
 
-  const ridgeDetail =
-    ridgedFbm(
-      warpedX * 8.0 - 12,
-      warpedZ * 8.0 + 5,
-      4
-    );
-
-  const weatheringNoise =
-    fbm(
-      warpedX * 15 - 3,
-      warpedZ * 15 + 11,
-      4
-    );
-
-
-  /*
-    Combine broad relief, ridges, valley shoulders,
-    and smaller terrain detail.
-  */
-  const broadRelief =
-    24 +
-    72 *
-      (
-        0.45 +
-        0.55 *
-          regionalNoise
-      );
-
-  const mountainRelief =
-    118 *
+  const gullies =
     Math.pow(
-      mountainMass,
-      1.25
-    ) *
-    (
-      0.55 +
-      0.45 *
-        regionalNoise
+      Math.abs(
+        fbm(
+          warpedX * 14 - 11,
+          warpedZ * 14 + 8,
+          4
+        ) -
+        0.5
+      ) *
+        2,
+      1.6
     );
 
-  const shoulderRelief =
-    42 *
-    (
-      leftShoulder +
-      rightShoulder
-    ) *
-    (
-      0.65 +
-      0.35 *
-        regionalNoise
-    );
-
-  const fineRelief =
-    16 *
-      ridgeDetail +
-    8 *
-      weatheringNoise;
-
-
-  /*
-    Cut the broad valley into the terrain.
-    The inner valley cut is stronger near the
-    centre and produces a more U-shaped appearance.
-  */
-  const valleyCut =
+  let height =
+    20 +
+    168 *
+      mainRidge *
+      ridgeVariation +
     62 *
-      broadValley +
-    14 *
-      innerValley;
+      secondaryRidge +
+    34 *
+      alpineNoise +
+    12 *
+      gullies;
 
-  const sideValleyCut =
-    20 *
-    sideValley;
-
-  const height =
-    broadRelief +
-    mountainRelief +
-    shoulderRelief +
-    fineRelief -
-    valleyCut -
-    sideValleyCut;
+  height -=
+    26 *
+    Math.exp(
+      -Math.pow(
+        (
+          warpedZ -
+          0.03
+        ) /
+          0.09,
+        2
+      )
+    ) *
+    (
+      0.35 +
+      0.65 *
+        fbm(
+          warpedX * 5,
+          warpedZ * 5,
+          4
+        )
+    );
 
   return Math.max(
-    4,
+    0,
     height
   );
 }
