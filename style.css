@@ -622,6 +622,31 @@ input[type="checkbox"] {
 }
 
 
+#sourceDrawingHintrighttemp {
+  position: absolute;
+  top: 14px;
+  left: auto;
+  right: 18px;
+  z-index: 10;
+
+  padding: 8px 10px;
+
+  border: 1px solid var(--border-light);
+  background: rgba(5, 5, 5, 0.5);
+
+  color: #cccccc;
+
+  font-size: 8px;
+  font-weight: 750;
+  letter-spacing: 0.09em;
+  line-height: 1.4;
+
+  text-align: center;
+
+  pointer-events: none;
+  user-select: none;
+}
+
 #sourceMoveHint {
   position: absolute;
   top: 14px;

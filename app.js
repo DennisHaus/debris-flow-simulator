@@ -236,6 +236,9 @@ clearSourcePolygonButton:
 
   particleCountStatus:
     $("particleCountStatus")
+
+  sourceDrawingHint:
+    $("sourceDrawingHintrighttemp")
 };
 
 
@@ -518,7 +521,10 @@ const scratchNormal =
 /* -------------------------------------------------------------------------- */
 /* Utility functions                                                          */
 /* -------------------------------------------------------------------------- */
-
+function updateSourceDrawingHint() {
+  ui.sourceDrawingHint.hidden =
+    !sourceDrawing;
+}
 function clamp(value, min, max) {
   return Math.max(
     min,
@@ -2146,41 +2152,51 @@ function createOverlay() {
       )
     );
 
-  overlayMaterial =
-    new THREE.ShaderMaterial({
-      vertexShader: `
-        attribute vec3 overlayColor;
-        attribute float overlayAlpha;
+    overlayMaterial =
+      new THREE.ShaderMaterial({
+        vertexShader: `
+          attribute vec3 overlayColor;
+          attribute float overlayAlpha;
 
-        varying vec3 vColor;
-        varying float vAlpha;
+          varying vec3 vColor;
+          varying float vAlpha;
 
-        void main() {
-          vColor = overlayColor;
-          vAlpha = overlayAlpha;
+          void main() {
+            vColor = overlayColor;
+            vAlpha = overlayAlpha;
 
-          gl_Position =
-            projectionMatrix *
-            modelViewMatrix *
-            vec4(position, 1.0);
-        }
-      `,
+            gl_Position =
+              projectionMatrix *
+              modelViewMatrix *
+              vec4(position, 1.0);
+          }
+        `,
 
-      fragmentShader: `
-        varying vec3 vColor;
-        varying float vAlpha;
+        fragmentShader: `
+          varying vec3 vColor;
+          varying float vAlpha;
 
-        void main() {
-          gl_FragColor =
-            vec4(vColor, vAlpha);
-        }
-      `,
+          void main() {
+            if (vAlpha < 0.001) {
+              discard;
+            }
 
-      transparent: true,
-      depthWrite: false,
-      depthTest: true,
-      side: THREE.DoubleSide
-    });
+            gl_FragColor =
+              vec4(vColor, vAlpha);
+          }
+        `,
+
+        transparent: true,
+
+        depthTest: true,
+        depthWrite: false,
+
+        polygonOffset: true,
+        polygonOffsetFactor: -4,
+        polygonOffsetUnits: -4,
+
+        side: THREE.DoubleSide
+      });
 
   overlayMesh =
     new THREE.Mesh(
@@ -2238,8 +2254,26 @@ function updateOverlay() {
       heights[i] -
       originalHeights[i];
 
+      const box =
+        terrainMesh.geometry.boundingBox;
+
+      const terrainSize =
+        box.getSize(
+          new THREE.Vector3()
+        );
+
+      const overlayOffset =
+        Math.max(
+          0.08,
+          Math.max(
+            terrainSize.x,
+            terrainSize.y,
+            terrainSize.z
+          ) * 0.0001
+        );
+
     positions[i * 3 + 1] =
-      heights[i] + 0.08;
+      heights[i] + overlayOffset;
 
     const intensity =
       clamp(
@@ -4573,6 +4607,9 @@ function beginSourcePolygonDrawing() {
   sourceDrawing = true;
   sourceDraftPoints = [];
 
+  updateDraftSourceVisual();
+  updateSourceDrawingHint();
+
   setStatus(
     "DRAW SOURCE POLYGON"
   );
@@ -4587,6 +4624,8 @@ function finishSourcePolygonDrawing() {
       "NEED AT LEAST 3 POINTS"
     );
 
+    // Keep the hint visible because drawing
+    // is still active.
     return;
   }
 
@@ -4603,6 +4642,8 @@ function finishSourcePolygonDrawing() {
       "INVALID POLYGON"
     );
 
+    // Keep the hint visible because drawing
+    // is still active.
     return;
   }
 
@@ -4629,6 +4670,8 @@ function finishSourcePolygonDrawing() {
   sourceDraftPoints = [];
 
   updateDraftSourceVisual();
+  updateSourceDrawingHint();
+
   resetSimulation();
 
   setStatus(
@@ -4642,16 +4685,24 @@ function cancelSourcePolygonDrawing() {
   sourceDraftPoints = [];
 
   updateDraftSourceVisual();
+  updateSourceDrawingHint();
 
-  setStatus("PAUSED");
+  setStatus(
+    "PAUSED"
+  );
 }
 
 
 function clearSourcePolygon() {
+  sourceDrawing = false;
+  sourceDraftPoints = [];
+
   source.polygon = null;
 
   updateDraftSourceVisual();
+  updateSourceDrawingHint();
   updateSourceVisuals();
+
   resetSimulation();
 
   setStatus(
