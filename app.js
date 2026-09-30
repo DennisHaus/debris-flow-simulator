@@ -235,7 +235,7 @@ clearSourcePolygonButton:
     $("status"),
 
   particleCountStatus:
-    $("particleCountStatus")
+    $("particleCountStatus"),
 
   sourceDrawingHint:
     $("sourceDrawingHintrighttemp")
