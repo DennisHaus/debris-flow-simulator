@@ -1864,6 +1864,271 @@ function terrainHeightAt(x, z) {
   );
 }
 
+function copyArrayInto(target, source) {
+  if (!target || !source) {
+    return;
+  }
+
+  if (typeof target.set === "function") {
+    target.set(source);
+    return;
+  }
+
+  for (
+    let i = 0;
+    i < source.length;
+    i++
+  ) {
+    target[i] = source[i];
+  }
+}
+
+
+function captureSimFrame() {
+  if (
+    !particles ||
+    !terrainState
+  ) {
+    return null;
+  }
+
+  return {
+    positions:
+      particles.positions.slice(),
+
+    velocities:
+      particles.velocities.slice(),
+
+    lastPositions:
+      particles.lastPositions.slice(),
+
+    distances:
+      particles.distances.slice(),
+
+    settled:
+      particles.settled.slice(),
+
+    remaining:
+      particles.remaining.slice(),
+
+    heights:
+      terrainState.heights.slice(),
+
+    stackHeight:
+      particles.stackHeight
+  };
+}
+
+
+function clearSimCache() {
+  simCache = [];
+  simCacheIndex = -1;
+  simCacheAccumulator = 0;
+
+  updateSimCacheSlider();
+}
+
+
+function storeSimFrame() {
+  const frame =
+    captureSimFrame();
+
+  if (!frame) {
+    return;
+  }
+
+  /*
+   * If the user moved backwards and then
+   * continues the simulation, remove the
+   * obsolete future frames.
+   */
+  if (
+    simCacheIndex <
+    simCache.length - 1
+  ) {
+    simCache.splice(
+      simCacheIndex + 1
+    );
+  }
+
+  simCache.push(frame);
+
+  while (
+    simCache.length >
+    SIM_CACHE_MAX_FRAMES
+  ) {
+    simCache.shift();
+  }
+
+  simCacheIndex =
+    simCache.length - 1;
+
+  updateSimCacheSlider();
+}
+
+function updateSimCache(deltaSeconds) {
+  if (
+    !params.running ||
+    restoringSimCache
+  ) {
+    return;
+  }
+
+  simCacheAccumulator +=
+    deltaSeconds;
+
+  if (
+    simCacheAccumulator >=
+    SIM_CACHE_INTERVAL
+  ) {
+    simCacheAccumulator =
+      simCacheAccumulator %
+      SIM_CACHE_INTERVAL;
+
+    storeSimFrame();
+  }
+}
+
+function updateSimCacheSlider() {
+  if (
+    !ui.historySlider
+  ) {
+    return;
+  }
+
+  ui.historySlider.min = 0;
+
+  ui.historySlider.max =
+    Math.max(
+      simCache.length - 1,
+      0
+    );
+
+  ui.historySlider.value =
+    Math.max(
+      simCacheIndex,
+      0
+    );
+
+  ui.historySlider.disabled =
+    simCache.length < 2;
+}
+
+function restoreSimFrame(index) {
+  const frame =
+    simCache[index];
+
+  if (
+    !frame ||
+    !particles ||
+    !terrainState
+  ) {
+    return;
+  }
+
+  /*
+   * Pause while viewing an old frame.
+   * Otherwise the simulation will immediately
+   * overwrite the restored data.
+   */
+  params.running = false;
+
+  restoringSimCache = true;
+
+  copyArrayInto(
+    particles.positions,
+    frame.positions
+  );
+
+  copyArrayInto(
+    particles.velocities,
+    frame.velocities
+  );
+
+  copyArrayInto(
+    particles.lastPositions,
+    frame.lastPositions
+  );
+
+  copyArrayInto(
+    particles.distances,
+    frame.distances
+  );
+
+  copyArrayInto(
+    particles.settled,
+    frame.settled
+  );
+
+  copyArrayInto(
+    particles.remaining,
+    frame.remaining
+  );
+
+  copyArrayInto(
+    terrainState.heights,
+    frame.heights
+  );
+
+  particles.stackHeight =
+    frame.stackHeight;
+
+  simCacheIndex = index;
+
+  /*
+   * Update terrain vertex heights.
+   */
+  if (
+    terrainMesh &&
+    terrainMesh.geometry
+  ) {
+    const positionAttribute =
+      terrainMesh.geometry
+        .getAttribute("position");
+
+    if (positionAttribute) {
+      const positionArray =
+        positionAttribute.array;
+
+      for (
+        let i = 0;
+        i < terrainState.heights.length;
+        i++
+      ) {
+        positionArray[i * 3 + 1] =
+          terrainState.heights[i];
+      }
+
+      positionAttribute.needsUpdate = true;
+
+      terrainMesh.geometry
+        .computeVertexNormals();
+    }
+  }
+
+  /*
+   * Update particle positions.
+   */
+  if (
+    particleGeometry
+  ) {
+    const positionAttribute =
+      particleGeometry
+        .getAttribute("position");
+
+    if (positionAttribute) {
+      positionAttribute.needsUpdate = true;
+    }
+  }
+
+  updateOverlay();
+  updateSourceVisuals();
+  updateSimCacheSlider();
+
+  restoringSimCache = false;
+}
+
+
 
 function terrainNormalAt(x, z) {
   if (
@@ -4380,6 +4645,8 @@ function resetSimulation() {
   generateParticles();
   createParticleVisual();
   updateSourceVisuals();
+  clearSimCache();
+storeSimFrame();
 
   ui.playButton.textContent = "PLAY";
   setStatus("PAUSED");
@@ -4492,6 +4759,8 @@ function advanceCachedPlayback(
 
   return true;
 }
+
+
 
 function animateSimulation(realDelta) {
   if (
@@ -5728,6 +5997,17 @@ ui.showOriginalTerrain.addEventListener(
   }
 );
 
+ui.historySlider.addEventListener(
+  "input",
+  () => {
+    restoreSimFrame(
+      Number(
+        ui.historySlider.value
+      )
+    );
+  }
+);
+
 
 ui.exportOriginalTerrainButton.addEventListener(
   "click",
@@ -5989,28 +6269,23 @@ window.addEventListener(
 let previousTime =
   performance.now();
 
+function animate() {
+    requestAnimationFrame(animate);
 
-function animate(now) {
-  const delta =
-    Math.min(
-      (now - previousTime) / 1000,
-      0.1
+    const delta =
+      clock.getDelta();
+
+    if (params.running) {
+      updateSimulation(delta);
+
+      updateSimCache(delta);
+    }
+
+    renderer.render(
+      scene,
+      camera
     );
-
-  previousTime = now;
-
-  controls.update();
-  animateSimulation(delta);
-
-  renderer.render(
-    scene,
-    camera
-  );
-
-  requestAnimationFrame(
-    animate
-  );
-}
+  }
 
 
 /* -------------------------------------------------------------------------- */
