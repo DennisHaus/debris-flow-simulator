@@ -235,8 +235,8 @@ exportTerrainButton:
 /* -------------------------------------------------------------------------- */
 
 const params = {
-  particleTerrainFriction: 0.65,
-  particleParticleFriction: 0.35,
+  particleTerrainFriction: 5,
+  particleParticleFriction: 5,
   particleCohesion: 0.35,
 
   startVelocity: 0,
