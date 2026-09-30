@@ -625,13 +625,14 @@ input[type="checkbox"] {
 #sourceMoveHint {
   position: absolute;
   top: 14px;
-  right: 14px;
+  left: 18px;
+  right: auto;
   z-index: 10;
 
   padding: 8px 10px;
 
   border: 1px solid var(--border-light);
-  background: rgba(5, 5, 5, 0.88);
+  background: rgba(5, 5, 5, 0.5);
 
   color: #cccccc;
 
