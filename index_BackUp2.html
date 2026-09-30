@@ -40,7 +40,7 @@
         <h1>
           DEBRIS<br>
           FLOW<br>
-          SIMULATOR 16
+          SIMULATOR 15
         </h1>
 
         <p class="description">
@@ -314,36 +314,6 @@
                         step="100"
                         value="3500"
                       >
-                    </div>
-
-
-                    <div class="control">
-                      <div class="button-row secondary">
-                        <button
-                          id="drawSourcePolygonButton"
-                          type="button"
-                          title="Draw a polygon directly on the terrain. Click to add vertices; double-click to finish."
-                        >
-                          DRAW SOURCE POLYGON
-                        </button>
-
-                        <button
-                          id="clearSourcePolygonButton"
-                          type="button"
-                          title="Return to the rectangular source area."
-                        >
-                          CLEAR POLYGON
-                        </button>
-                      </div>
-                    </div>
-
-
-                    <div class="control">
-                      <div class="label-row">
-                        <span class="hint">
-                          POLYGON MODE: CLICK TO ADD · DOUBLE-CLICK TO FINISH · ESC TO CANCEL
-                        </span>
-                      </div>
                     </div>
 
 
@@ -965,25 +935,6 @@
 
         <div class="button-row secondary">
           <button
-            id="replayButton"
-            type="button"
-            title="Play the cached simulation history from the beginning."
-          >
-            REPLAY
-          </button>
-
-          <button
-            id="reverseButton"
-            type="button"
-            title="Play the cached simulation history backwards."
-          >
-            REVERSE
-          </button>
-        </div>
-
-
-        <div class="button-row secondary">
-          <button
             id="addButton"
             type="button"
           >
@@ -1040,7 +991,7 @@
 
 
       <div id="sourceHint">
-        SHIFT + LEFT CLICK TO MOVE SOURCE · DRAW SOURCE POLYGON FOR CUSTOM AREAS
+        SHIFT + LEFT CLICK TO MOVE SOURCE
       </div>
 
 
@@ -1196,17 +1147,7 @@
           <ul>
             <li>
               <strong>Shift + left click:</strong>
-              Move the rectangular release source across the terrain while paused.
-            </li>
-
-            <li>
-              <strong>Draw Source Polygon:</strong>
-              Click points on the terrain to define a custom release area; double-click to finish or press Escape to cancel.
-            </li>
-
-            <li>
-              <strong>Replay / Reverse:</strong>
-              Play the cached simulation history forwards or backwards, including particle motion and terrain evolution.
+              Move the release source across the terrain while paused.
             </li>
 
             <li>
