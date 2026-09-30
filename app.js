@@ -5829,15 +5829,6 @@ ui.dropZone.addEventListener(
   }
 );
 
-ui.reverseButton.addEventListener(
-  "click",
-  () => {
-    beginCachedPlayback(
-      "reverse"
-    );
-  }
-);
-
 
 ui.dropZone.addEventListener(
   "drop",
