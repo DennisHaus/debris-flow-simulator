@@ -2431,6 +2431,22 @@ function polygonArea(polygon) {
   return Math.abs(area) * 0.5;
 }
 
+function activeSourceArea() {
+  if (
+    source.polygon &&
+    source.polygon.length >= 3
+  ) {
+    return Math.max(
+      polygonArea(source.polygon),
+      1
+    );
+  }
+
+  return Math.max(
+    params.sourceArea,
+    1
+  );
+}
 
 function polygonCentroid(polygon) {
   let area2 = 0;
@@ -2586,7 +2602,9 @@ function updateSourceVisuals() {
         params.sourceArea,
         1
       ),
-      particles?.stackHeight || 5
+      particles
+  ? particles.stackHeight
+  : 5
     );
 
   const linePoints = [];
