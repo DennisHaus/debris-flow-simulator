@@ -238,8 +238,8 @@ const ui = {
 /* -------------------------------------------------------------------------- */
 
 const params = {
-  particleTerrainFriction: 5,
-  particleParticleFriction: 5,
+  particleTerrainFriction: 0.65,
+  particleParticleFriction: 0.75,
   particleCohesion: 0.35,
 
   startVelocity: 0,
@@ -249,7 +249,7 @@ const params = {
 
   terrainEvolutionEnabled: true,
   showChangeOverlay: false,
-  showOriginalTerrain: true,
+  showOriginalTerrain: false,
   changeOverlayScale: 0.05,
 
   erosionRate: 0.6,

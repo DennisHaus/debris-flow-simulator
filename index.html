@@ -40,15 +40,15 @@
         <h1>
           DEBRIS<br>
           FLOW<br>
-          SIMULATOR 13
+          SIMULATOR 14
         </h1>
 
         <p class="description">
           A simplified terrain-based model for observing sediment movement
           across changing topography. For visualisation purposes only.<br><br>
 
-          Developed at Professur Voser, Institute for Landscape and Urban
-          Studies, ETH Zurich, 2026.
+          developed at Professur Voser, Institute for Landscape and Urban
+          Studies, ETH Zurich, 2026
         </p>
 
         <button
@@ -64,7 +64,7 @@
       <section class="controls">
 
         <details>
-          <summary>MATERIAL / FLOW</summary>
+          <summary>MATERIAL PROPERTIES</summary>
 
           <div class="details-body">
 
@@ -281,6 +281,156 @@
         </details>
 
 
+                <details>
+                  <summary>SOURCE MATERIAL</summary>
+
+                  <div class="details-body">
+
+                    <div class="control">
+                      <div class="label-row">
+                        <label
+                          for="sourceArea"
+                          title="Area of the rectangular material release zone."
+                        >
+                          RELEASE AREA m²
+                        </label>
+
+                        <input
+                          id="sourceAreaNumber"
+                          class="numeric-input"
+                          type="number"
+                          min="100"
+                          max="100000"
+                          step="100"
+                          value="3500"
+                        >
+                      </div>
+
+                      <input
+                        id="sourceArea"
+                        type="range"
+                        min="100"
+                        max="100000"
+                        step="100"
+                        value="3500"
+                      >
+                    </div>
+
+
+                    <div class="control">
+                      <div class="label-row">
+                        <label
+                          for="sourceVolume"
+                          title="Total volume of material released into the simulation."
+                        >
+                          START VOLUME m³
+                        </label>
+
+                        <input
+                          id="sourceVolumeNumber"
+                          class="numeric-input"
+                          type="number"
+                          min="1000"
+                          max="500000"
+                          step="1000"
+                          value="7000"
+                        >
+                      </div>
+
+                      <input
+                        id="sourceVolume"
+                        type="range"
+                        min="1000"
+                        max="500000"
+                        step="1000"
+                        value="7000"
+                      >
+                    </div>
+
+
+                    <div class="control">
+                      <div class="label-row">
+                        <label
+                          for="particleDensity"
+                          title="Number of simulated macro-particles per cubic metre."
+                        >
+                          PARTICLES / m³
+                        </label>
+
+                        <input
+                          id="particleDensityNumber"
+                          class="numeric-input"
+                          type="number"
+                          min="0.001"
+                          max="10"
+                          step="0.000001"
+                          value="0.142857"
+                        >
+                      </div>
+
+                      <input
+                        id="particleDensity"
+                        type="range"
+                        min="0.001"
+                        max="10"
+                        step="0.000001"
+                        value="0.142857"
+                      >
+                    </div>
+
+
+                    <div class="control">
+                      <div class="label-row">
+                        <label
+                          for="colorMode"
+                          title="Selects the property used to colour the particles."
+                        >
+                          COLOR BY
+                        </label>
+
+                        <select id="colorMode">
+                          <option value="velocity">VELOCITY</option>
+                          <option value="distance">DISTANCE TRAVELED</option>
+                          <option value="thickness">FLOW THICKNESS</option>
+                        </select>
+                      </div>
+                    </div>
+
+
+                    <div class="control">
+                      <div class="label-row">
+                        <label
+                          for="particleSize"
+                          title="Changes the visual size of particles without changing their physical radius."
+                        >
+                          PARTICLE DISPLAY SCALE ×
+                        </label>
+
+                        <input
+                          id="particleSizeNumber"
+                          class="numeric-input"
+                          type="number"
+                          min="0.25"
+                          max="3"
+                          step="0.05"
+                          value="2"
+                        >
+                      </div>
+
+                      <input
+                        id="particleSize"
+                        type="range"
+                        min="0.25"
+                        max="3"
+                        step="0.05"
+                        value="2"
+                      >
+                    </div>
+
+                  </div>
+                </details>
+
+
         <details>
           <summary>EROSION / DEPOSITION</summary>
 
@@ -331,7 +481,7 @@
     <input
       id="showOriginalTerrain"
       type="checkbox"
-      
+
     >
   </div>
 </div>
@@ -764,154 +914,6 @@
         </details>
 
 
-        <details>
-          <summary>SOURCE MATERIAL</summary>
-
-          <div class="details-body">
-
-            <div class="control">
-              <div class="label-row">
-                <label
-                  for="sourceArea"
-                  title="Area of the rectangular material release zone."
-                >
-                  RELEASE AREA m²
-                </label>
-
-                <input
-                  id="sourceAreaNumber"
-                  class="numeric-input"
-                  type="number"
-                  min="100"
-                  max="100000"
-                  step="100"
-                  value="3500"
-                >
-              </div>
-
-              <input
-                id="sourceArea"
-                type="range"
-                min="100"
-                max="100000"
-                step="100"
-                value="3500"
-              >
-            </div>
-
-
-            <div class="control">
-              <div class="label-row">
-                <label
-                  for="sourceVolume"
-                  title="Total volume of material released into the simulation."
-                >
-                  START VOLUME m³
-                </label>
-
-                <input
-                  id="sourceVolumeNumber"
-                  class="numeric-input"
-                  type="number"
-                  min="1000"
-                  max="500000"
-                  step="1000"
-                  value="7000"
-                >
-              </div>
-
-              <input
-                id="sourceVolume"
-                type="range"
-                min="1000"
-                max="500000"
-                step="1000"
-                value="7000"
-              >
-            </div>
-
-
-            <div class="control">
-              <div class="label-row">
-                <label
-                  for="particleDensity"
-                  title="Number of simulated macro-particles per cubic metre."
-                >
-                  PARTICLES / m³
-                </label>
-
-                <input
-                  id="particleDensityNumber"
-                  class="numeric-input"
-                  type="number"
-                  min="0.001"
-                  max="10"
-                  step="0.000001"
-                  value="0.142857"
-                >
-              </div>
-
-              <input
-                id="particleDensity"
-                type="range"
-                min="0.001"
-                max="10"
-                step="0.000001"
-                value="0.142857"
-              >
-            </div>
-
-
-            <div class="control">
-              <div class="label-row">
-                <label
-                  for="colorMode"
-                  title="Selects the property used to colour the particles."
-                >
-                  COLOR BY
-                </label>
-
-                <select id="colorMode">
-                  <option value="velocity">VELOCITY</option>
-                  <option value="distance">DISTANCE TRAVELED</option>
-                  <option value="thickness">FLOW THICKNESS</option>
-                </select>
-              </div>
-            </div>
-
-
-            <div class="control">
-              <div class="label-row">
-                <label
-                  for="particleSize"
-                  title="Changes the visual size of particles without changing their physical radius."
-                >
-                  PARTICLE DISPLAY SCALE ×
-                </label>
-
-                <input
-                  id="particleSizeNumber"
-                  class="numeric-input"
-                  type="number"
-                  min="0.25"
-                  max="3"
-                  step="0.05"
-                  value="2"
-                >
-              </div>
-
-              <input
-                id="particleSize"
-                type="range"
-                min="0.25"
-                max="3"
-                step="0.05"
-                value="2"
-              >
-            </div>
-
-          </div>
-        </details>
 
 
         <div class="button-row">
