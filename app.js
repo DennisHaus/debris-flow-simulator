@@ -90,12 +90,6 @@ const ui = {
     showOriginalTerrain:
   $("showOriginalTerrain"),
 
-  replayButton:
-  $("replayButton"),
-
-reverseButton:
-  $("reverseButton"),
-
   exportOriginalTerrainButton:
     $("exportOriginalTerrainButton"),
 
@@ -5834,16 +5828,6 @@ ui.dropZone.addEventListener(
     ui.dropZone.classList.remove("dragover");
   }
 );
-
-ui.replayButton.addEventListener(
-  "click",
-  () => {
-    beginCachedPlayback(
-      "forward"
-    );
-  }
-);
-
 
 ui.reverseButton.addEventListener(
   "click",
