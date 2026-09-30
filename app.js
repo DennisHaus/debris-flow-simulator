@@ -482,7 +482,7 @@ let simulationTime = 0;
 let simulationAccumulator = 0;
 
 const source = {
-  center: new THREE.Vector2(-50, 100)
+  center: new THREE.Vector2(-50, 0)
 };
 
 const raycaster =
