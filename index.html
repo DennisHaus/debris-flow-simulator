@@ -40,7 +40,7 @@
         <h1>
           DEBRIS<br>
           FLOW<br>
-          SIMULATOR 11
+          SIMULATOR 12
         </h1>
 
         <p class="description">
@@ -82,9 +82,9 @@
                   class="numeric-input"
                   type="number"
                   min="0"
-                  max="10"
+                  max="1"
                   step="0.01"
-                  value="5"
+                  value="0.75"
                 >
               </div>
 
@@ -94,7 +94,7 @@
                 min="0"
                 max="1"
                 step="0.01"
-                value="0.65"
+                value="0.55"
                 title="Resistance between particles and the terrain surface."
               >
             </div>
@@ -116,7 +116,7 @@
                   min="0"
                   max="1"
                   step="0.01"
-                  value="0.35"
+                  value="0.75"
                 >
               </div>
 
@@ -126,7 +126,7 @@
                 min="0"
                 max="1"
                 step="0.01"
-                value="0.35"
+                value="0.55"
                 title="Friction between particles."
               >
             </div>
@@ -331,6 +331,7 @@
     <input
       id="showOriginalTerrain"
       type="checkbox"
+      checked
     >
   </div>
 </div>
@@ -338,9 +339,20 @@
 
 <div class="control">
   <button
-    id="exportTerrainButton"
+    id="exportOriginalTerrainButton"
     type="button"
-    title="Downloads the current terrain surface, including erosion and deposition changes, as an STL file."
+    title="Downloads the original terrain before erosion and deposition as an STL file."
+  >
+    EXPORT ORIGINAL TERRAIN · STL
+  </button>
+</div>
+
+
+<div class="control">
+  <button
+    id="exportUpdatedTerrainButton"
+    type="button"
+    title="Downloads the current terrain after erosion and deposition as an STL file."
   >
     EXPORT UPDATED TERRAIN · STL
   </button>

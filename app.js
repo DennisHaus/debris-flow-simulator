@@ -90,8 +90,11 @@ const ui = {
     showOriginalTerrain:
   $("showOriginalTerrain"),
 
-exportTerrainButton:
-  $("exportTerrainButton"),
+  exportOriginalTerrainButton:
+    $("exportOriginalTerrainButton"),
+
+  exportUpdatedTerrainButton:
+    $("exportUpdatedTerrainButton"),
 
   changeLegend:
     $("changeLegend"),
@@ -246,7 +249,7 @@ const params = {
 
   terrainEvolutionEnabled: true,
   showChangeOverlay: false,
-  showOriginalTerrain: false,
+  showOriginalTerrain: true,
   changeOverlayScale: 0.05,
 
   erosionRate: 0.6,
@@ -4364,10 +4367,12 @@ async function loadExampleTerrain() {
   }
 }
 
-function exportUpdatedTerrain() {
-  if (
-    !terrainMesh
-  ) {
+function downloadTerrainAsSTL(
+  mesh,
+  filename,
+  statusMessage
+) {
+  if (!mesh) {
     setStatus(
       "NO TERRAIN AVAILABLE"
     );
@@ -4376,7 +4381,7 @@ function exportUpdatedTerrain() {
   }
 
   try {
-    terrainMesh.updateMatrixWorld(
+    mesh.updateMatrixWorld(
       true
     );
 
@@ -4385,7 +4390,7 @@ function exportUpdatedTerrain() {
 
     const result =
       exporter.parse(
-        terrainMesh,
+        mesh,
         {
           binary: true
         }
@@ -4404,14 +4409,6 @@ function exportUpdatedTerrain() {
         blob
       );
 
-    const timeLabel =
-      simulationTime
-        .toFixed(2)
-        .replace(
-          ".",
-          "-"
-        );
-
     const link =
       document.createElement(
         "a"
@@ -4421,13 +4418,14 @@ function exportUpdatedTerrain() {
       url;
 
     link.download =
-      `debris-flow-terrain-${timeLabel}s.stl`;
+      filename;
 
     document.body.appendChild(
       link
     );
 
     link.click();
+
     link.remove();
 
     window.setTimeout(
@@ -4440,7 +4438,7 @@ function exportUpdatedTerrain() {
     );
 
     setStatus(
-      "UPDATED TERRAIN EXPORTED"
+      statusMessage
     );
   } catch (error) {
     console.error(
@@ -4452,6 +4450,24 @@ function exportUpdatedTerrain() {
       "TERRAIN EXPORT FAILED"
     );
   }
+}
+
+
+function exportOriginalTerrain() {
+  downloadTerrainAsSTL(
+    originalTerrainMesh,
+    "debris-flow-terrain-original.stl",
+    "ORIGINAL TERRAIN EXPORTED"
+  );
+}
+
+
+function exportUpdatedTerrain() {
+  downloadTerrainAsSTL(
+    terrainMesh,
+    "debris-flow-terrain-updated.stl",
+    "UPDATED TERRAIN EXPORTED"
+  );
 }
 
 
@@ -4746,7 +4762,13 @@ ui.showOriginalTerrain.addEventListener(
 );
 
 
-ui.exportTerrainButton.addEventListener(
+ui.exportOriginalTerrainButton.addEventListener(
+  "click",
+  exportOriginalTerrain
+);
+
+
+ui.exportUpdatedTerrainButton.addEventListener(
   "click",
   exportUpdatedTerrain
 );
