@@ -90,6 +90,12 @@ const ui = {
     showOriginalTerrain:
   $("showOriginalTerrain"),
 
+  replayButton:
+  $("replayButton"),
+
+reverseButton:
+  $("reverseButton"),
+
   exportOriginalTerrainButton:
     $("exportOriginalTerrainButton"),
 
@@ -203,6 +209,12 @@ const ui = {
 
   resetButton:
     $("resetButton"),
+
+    drawSourcePolygonButton:
+  $("drawSourcePolygonButton"),
+
+clearSourcePolygonButton:
+  $("clearSourcePolygonButton"),
 
   addButton:
     $("addButton"),
@@ -481,9 +493,23 @@ let overlayMesh = null;
 let simulationTime = 0;
 let simulationAccumulator = 0;
 
+const SIM_CACHE_INTERVAL = 0.15;
+const SIM_CACHE_MAX_FRAMES = 300;
+
+let simulationCache = [];
+let cacheCursor = -1;
+let cacheAccumulator = 0;
+let cachePlaybackAccumulator = 0;
+let playbackMode = "live";
+
 const source = {
-  center: new THREE.Vector2(-50, 0)
+  center: new THREE.Vector2(-50, 0),
+  polygon: null
 };
+
+let sourceDraftPoints = [];
+let sourceDraftOutline = null;
+let sourceDrawing = false;
 
 const raycaster =
   new THREE.Raycaster();
@@ -2339,7 +2365,7 @@ function fitCamera() {
 /* Source visualisation                                                       */
 /* -------------------------------------------------------------------------- */
 
-function sourcePolygon() {
+ffunction rectangularSourcePolygon() {
   const side =
     Math.sqrt(
       Math.max(
@@ -2348,8 +2374,7 @@ function sourcePolygon() {
       )
     );
 
-  const half =
-    side * 0.5;
+  const half = side * 0.5;
 
   return [
     new THREE.Vector2(
@@ -2374,6 +2399,130 @@ function sourcePolygon() {
   ];
 }
 
+
+function sourcePolygon() {
+  if (
+    source.polygon &&
+    source.polygon.length >= 3
+  ) {
+    return source.polygon;
+  }
+
+  return rectangularSourcePolygon();
+}
+
+function polygonArea(polygon) {
+  let area = 0;
+
+  for (
+    let i = 0;
+    i < polygon.length;
+    i++
+  ) {
+    const a = polygon[i];
+    const b =
+      polygon[(i + 1) % polygon.length];
+
+    area +=
+      a.x * b.y -
+      b.x * a.y;
+  }
+
+  return Math.abs(area) * 0.5;
+}
+
+
+function polygonCentroid(polygon) {
+  let area2 = 0;
+  let x = 0;
+  let y = 0;
+
+  for (
+    let i = 0;
+    i < polygon.length;
+    i++
+  ) {
+    const a = polygon[i];
+    const b =
+      polygon[(i + 1) % polygon.length];
+
+    const cross =
+      a.x * b.y -
+      b.x * a.y;
+
+    area2 += cross;
+
+    x +=
+      (a.x + b.x) *
+      cross;
+
+    y +=
+      (a.y + b.y) *
+      cross;
+  }
+
+  if (
+    Math.abs(area2) < 0.000001
+  ) {
+    return polygon[0].clone();
+  }
+
+  return new THREE.Vector2(
+    x / (3 * area2),
+    y / (3 * area2)
+  );
+}
+
+
+function pointInPolygon(
+  point,
+  polygon
+) {
+  let inside = false;
+
+  for (
+    let i = 0, j = polygon.length - 1;
+    i < polygon.length;
+    j = i++
+  ) {
+    const a = polygon[i];
+    const b = polygon[j];
+
+    const denominator =
+      b.y - a.y;
+
+    const safeDenominator =
+      Math.abs(denominator) < 0.0000001
+        ? (
+            denominator < 0
+              ? -0.0000001
+              : 0.0000001
+          )
+        : denominator;
+
+    const intersects =
+      (
+        a.y > point.y
+      ) !== (
+        b.y > point.y
+      ) &&
+      point.x <
+        (
+          b.x - a.x
+        ) *
+        (
+          point.y - a.y
+        ) /
+        safeDenominator +
+        a.x;
+
+    if (intersects) {
+      inside = !inside;
+    }
+  }
+
+  return inside;
+}
 
 function disposeObject(object) {
   if (!object) {
@@ -2553,6 +2702,105 @@ function startDirection(x, z) {
   );
 }
 
+function sourceParticlePoints(count) {
+  const polygon = sourcePolygon();
+
+  if (
+    !source.polygon ||
+    source.polygon.length < 3
+  ) {
+    const side =
+      Math.sqrt(
+        Math.max(
+          params.sourceArea,
+          1
+        )
+      );
+
+    const grid =
+      Math.ceil(
+        Math.sqrt(count)
+      );
+
+    const spacing =
+      side /
+      Math.max(grid, 1);
+
+    const points = [];
+
+    for (let row = 0; row < grid; row++) {
+      for (let column = 0; column < grid; column++) {
+        if (points.length >= count) {
+          break;
+        }
+
+        points.push(
+          new THREE.Vector2(
+            source.center.x -
+              side * 0.5 +
+              spacing * (column + 0.5),
+
+            source.center.y -
+              side * 0.5 +
+              spacing * (row + 0.5)
+          )
+        );
+      }
+    }
+
+    return points;
+  }
+
+  const box =
+    new THREE.Box2();
+
+  for (const point of polygon) {
+    box.expandByPoint(point);
+  }
+
+  const grid =
+    Math.ceil(
+      Math.sqrt(count)
+    );
+
+  const spacing =
+    Math.max(
+      box.max.x - box.min.x,
+      box.max.y - box.min.y
+    ) /
+    Math.max(grid, 1);
+
+  const points = [];
+
+  for (let row = 0; row < grid; row++) {
+    for (let column = 0; column < grid; column++) {
+      if (points.length >= count) {
+        break;
+      }
+
+      const point =
+        new THREE.Vector2(
+          box.min.x +
+            spacing * (column + 0.5),
+
+          box.min.y +
+            spacing * (row + 0.5)
+        );
+
+      if (
+        pointInPolygon(
+          point,
+          polygon
+        )
+      ) {
+        points.push(point);
+      }
+    }
+  }
+
+  return points;
+}
+
 
 function generateParticles() {
   const count =
@@ -2597,25 +2845,8 @@ function generateParticles() {
 
   remaining.fill(1);
 
-  const side =
-    Math.sqrt(
-      Math.max(
-        params.sourceArea,
-        1
-      )
-    );
-
-  const grid =
-    Math.ceil(
-      Math.sqrt(count)
-    );
-
-  const spacing =
-    side /
-    Math.max(
-      grid,
-      1
-    );
+  const sourcePoints =
+  sourceParticlePoints(count);
 
   let index = 0;
   let stackHeight = 0;
@@ -2626,28 +2857,16 @@ function generateParticles() {
     layer++
   ) {
     for (
-      let row = 0;
-      row < grid && index < count;
-      row++
-    ) {
-      for (
-        let column = 0;
-        column < grid && index < count;
-        column++
-      ) {
-        const x =
-          source.center.x -
-          side * 0.5 +
-          spacing * (
-            column + 0.5
-          );
+  let pointIndex = 0;
+  pointIndex < sourcePoints.length &&
+  index < count;
+  pointIndex++
+) {
+  const x =
+sourcePoints[pointIndex].x;
 
-        const z =
-          source.center.y -
-          side * 0.5 +
-          spacing * (
-            row + 0.5
-          );
+const z =
+sourcePoints[pointIndex].y;
 
         const terrainY =
           terrainHeightAt(x, z);
@@ -3908,10 +4127,198 @@ function updatePhysics(dt) {
 /* Simulation controls                                                        */
 /* -------------------------------------------------------------------------- */
 
+function captureSimulationFrame(
+  force = false
+) {
+  if (
+    !force &&
+    cacheAccumulator < SIM_CACHE_INTERVAL
+  ) {
+    return;
+  }
+
+  cacheAccumulator = 0;
+
+  const frame = {
+    simulationTime,
+    simulationAccumulator,
+
+    terrainEvolutionTime:
+      terrainState
+        ? terrainState.evolutionTime
+        : 0,
+
+    positions:
+      particles
+        ? new Float32Array(
+            particles.positions
+          )
+        : null,
+
+    velocities:
+      particles
+        ? new Float32Array(
+            particles.velocities
+          )
+        : null,
+
+    lastPositions:
+      particles
+        ? new Float32Array(
+            particles.lastPositions
+          )
+        : null,
+
+    distances:
+      particles
+        ? new Float32Array(
+            particles.distances
+          )
+        : null,
+
+    settled:
+      particles
+        ? new Float32Array(
+            particles.settled
+          )
+        : null,
+
+    remaining:
+      particles
+        ? new Float32Array(
+            particles.remaining
+          )
+        : null,
+
+    heights:
+      terrainState
+        ? new Float32Array(
+            terrainState.heights
+          )
+        : null,
+
+    pending:
+      terrainState
+        ? new Float32Array(
+            terrainState.pending
+          )
+        : null,
+
+    touched:
+      terrainState
+        ? Array.from(
+            terrainState.touched
+          )
+        : []
+  };
+
+  simulationCache.push(frame);
+
+  if (
+    simulationCache.length >
+    SIM_CACHE_MAX_FRAMES
+  ) {
+    simulationCache.shift();
+  }
+
+  cacheCursor =
+    simulationCache.length - 1;
+}
+
+function applyCachedFrame(index) {
+  if (
+    index < 0 ||
+    index >= simulationCache.length
+  ) {
+    return;
+  }
+
+  const frame =
+    simulationCache[index];
+
+  simulationTime =
+    frame.simulationTime;
+
+  simulationAccumulator =
+    frame.simulationAccumulator;
+
+  if (
+    particles &&
+    frame.positions
+  ) {
+    particles.positions.set(
+      frame.positions
+    );
+
+    particles.velocities.set(
+      frame.velocities
+    );
+
+    particles.lastPositions.set(
+      frame.lastPositions
+    );
+
+    particles.distances.set(
+      frame.distances
+    );
+
+    particles.settled.set(
+      frame.settled
+    );
+
+    particles.remaining.set(
+      frame.remaining
+    );
+  }
+
+  if (
+    terrainState &&
+    frame.heights
+  ) {
+    terrainState.heights.set(
+      frame.heights
+    );
+
+    terrainState.pending.set(
+      frame.pending
+    );
+
+    terrainState.touched =
+      new Set(frame.touched);
+
+    terrainState.evolutionTime =
+      frame.terrainEvolutionTime;
+
+    refreshTerrainGeometry();
+  }
+
+  cacheCursor = index;
+
+  if (particleGeometry) {
+    const positionAttribute =
+      particleGeometry.getAttribute(
+        "position"
+      );
+
+    if (positionAttribute) {
+      positionAttribute.needsUpdate = true;
+    }
+  }
+
+  updateParticleColours();
+}
+
 function resetSimulation() {
   params.running = false;
+
   simulationTime = 0;
   simulationAccumulator = 0;
+
+  simulationCache = [];
+  cacheCursor = -1;
+  cacheAccumulator = 0;
+  cachePlaybackAccumulator = 0;
+  playbackMode = "live";
 
   if (terrainState) {
     terrainState.heights.set(
@@ -3931,6 +4338,7 @@ function resetSimulation() {
 
   ui.playButton.textContent = "PLAY";
   setStatus("PAUSED");
+  captureSimulationFrame(true);
 }
 
 
@@ -3952,9 +4360,105 @@ function pauseSimulation() {
   setStatus("PAUSED");
 }
 
+function beginCachedPlayback(
+  direction
+) {
+  if (
+    simulationCache.length < 2
+  ) {
+    setStatus(
+      "NO SIMULATION CACHE"
+    );
+
+    return;
+  }
+
+  params.running = false;
+
+  playbackMode =
+    direction === "reverse"
+      ? "reverse"
+      : "forward";
+
+  cachePlaybackAccumulator = 0;
+
+  cacheCursor =
+    direction === "reverse"
+      ? simulationCache.length - 1
+      : 0;
+
+  applyCachedFrame(
+    cacheCursor
+  );
+
+  setStatus(
+    direction === "reverse"
+      ? "REVERSE"
+      : "REPLAY"
+  );
+}
+
+
+function advanceCachedPlayback(
+  realDelta
+) {
+  if (
+    playbackMode === "live"
+  ) {
+    return false;
+  }
+
+  cachePlaybackAccumulator +=
+    Math.min(
+      realDelta,
+      0.1
+    ) *
+    params.simulationSpeed;
+
+  while (
+    cachePlaybackAccumulator >=
+    SIM_CACHE_INTERVAL
+  ) {
+    cachePlaybackAccumulator -=
+      SIM_CACHE_INTERVAL;
+
+    if (
+      playbackMode === "forward"
+    ) {
+      cacheCursor++;
+    } else {
+      cacheCursor--;
+    }
+
+    if (
+      cacheCursor < 0 ||
+      cacheCursor >=
+        simulationCache.length
+    ) {
+      playbackMode = "live";
+      setStatus("PAUSED");
+      return false;
+    }
+
+    applyCachedFrame(
+      cacheCursor
+    );
+  }
+
+  return true;
+}
 
 function animateSimulation(realDelta) {
-  if (!params.running) {
+  if (
+  playbackMode !== "live"
+) {
+  advanceCachedPlayback(
+    realDelta
+  );
+
+  return;
+}
+if (!params.running) {
     return;
   }
 
@@ -3970,6 +4474,11 @@ function animateSimulation(realDelta) {
     params.running
   ) {
     updatePhysics(PHYSICS_STEP);
+
+    cacheAccumulator +=
+  PHYSICS_STEP;
+
+captureSimulationFrame();
 
     simulationAccumulator -=
       PHYSICS_STEP;
@@ -3995,6 +4504,149 @@ function animateSimulation(realDelta) {
 /* -------------------------------------------------------------------------- */
 /* Pointer interaction                                                        */
 /* -------------------------------------------------------------------------- */
+
+function updateDraftSourceVisual() {
+  if (sourceDraftOutline) {
+    sourceGroup.remove(
+      sourceDraftOutline
+    );
+
+    sourceDraftOutline.geometry.dispose();
+    sourceDraftOutline.material.dispose();
+
+    sourceDraftOutline = null;
+  }
+
+  if (
+    sourceDraftPoints.length < 2
+  ) {
+    return;
+  }
+
+  const points =
+    sourceDraftPoints.map(
+      (point) =>
+        new THREE.Vector3(
+          point.x,
+          terrainHeightAt(
+            point.x,
+            point.y
+          ) + 0.3,
+          point.y
+        )
+    );
+
+  const geometry =
+    new THREE.BufferGeometry()
+      .setFromPoints(points);
+
+  sourceDraftOutline =
+    new THREE.Line(
+      geometry,
+      new THREE.LineBasicMaterial({
+        color: 0xffff00
+      })
+    );
+
+  sourceGroup.add(
+    sourceDraftOutline
+  );
+}
+
+
+function beginSourcePolygonDrawing() {
+  if (params.running) {
+    return;
+  }
+
+  sourceDrawing = true;
+  sourceDraftPoints = [];
+
+  setStatus(
+    "DRAW SOURCE POLYGON"
+  );
+}
+
+
+function finishSourcePolygonDrawing() {
+  if (
+    sourceDraftPoints.length < 3
+  ) {
+    setStatus(
+      "NEED AT LEAST 3 POINTS"
+    );
+
+    return;
+  }
+
+  const polygon =
+    sourceDraftPoints.map(
+      point => point.clone()
+    );
+
+  const area =
+    polygonArea(polygon);
+
+  if (area <= 0) {
+    setStatus(
+      "INVALID POLYGON"
+    );
+
+    return;
+  }
+
+  source.polygon = polygon;
+
+  source.center.copy(
+    polygonCentroid(polygon)
+  );
+
+  params.sourceArea =
+    clamp(
+      area,
+      100,
+      100000
+    );
+
+  setPair(
+    ui.sourceArea,
+    ui.sourceAreaNumber,
+    params.sourceArea
+  );
+
+  sourceDrawing = false;
+  sourceDraftPoints = [];
+
+  updateDraftSourceVisual();
+  resetSimulation();
+
+  setStatus(
+    "POLYGON SOURCE READY"
+  );
+}
+
+
+function cancelSourcePolygonDrawing() {
+  sourceDrawing = false;
+  sourceDraftPoints = [];
+
+  updateDraftSourceVisual();
+
+  setStatus("PAUSED");
+}
+
+
+function clearSourcePolygon() {
+  source.polygon = null;
+
+  updateDraftSourceVisual();
+  updateSourceVisuals();
+  resetSimulation();
+
+  setStatus(
+    "RECTANGULAR SOURCE"
+  );
+}
 
 function terrainPointFromPointer(event) {
   const rectangle =
@@ -4050,7 +4702,6 @@ renderer.domElement.addEventListener(
   (event) => {
     if (
       event.button !== 0 ||
-      !event.shiftKey ||
       params.running
     ) {
       return;
@@ -4065,15 +4716,55 @@ renderer.domElement.addEventListener(
 
     event.preventDefault();
 
-    source.center.copy(point);
-    updateSourceVisuals();
-    resetSimulation();
+    if (sourceDrawing) {
+      sourceDraftPoints.push(
+        point.clone()
+      );
 
-    setStatus("SOURCE MOVED");
+      updateDraftSourceVisual();
+
+      return;
+    }
+
+    if (event.shiftKey) {
+      source.polygon = null;
+
+      source.center.copy(point);
+
+      updateSourceVisuals();
+      resetSimulation();
+
+      setStatus("SOURCE MOVED");
+    }
   },
   true
 );
 
+renderer.domElement.addEventListener(
+  "dblclick",
+  (event) => {
+    if (!sourceDrawing) {
+      return;
+    }
+
+    event.preventDefault();
+
+    finishSourcePolygonDrawing();
+  }
+);
+
+
+window.addEventListener(
+  "keydown",
+  (event) => {
+    if (
+      event.key === "Escape" &&
+      sourceDrawing
+    ) {
+      cancelSourcePolygonDrawing();
+    }
+  }
+);
 
 /* -------------------------------------------------------------------------- */
 /* Imported terrain                                                           */
@@ -5015,6 +5706,17 @@ ui.resetButton.addEventListener(
   resetSimulation
 );
 
+ui.drawSourcePolygonButton.addEventListener(
+  "click",
+  beginSourcePolygonDrawing
+);
+
+
+ui.clearSourcePolygonButton.addEventListener(
+  "click",
+  clearSourcePolygon
+);
+
 
 ui.addButton.addEventListener(
   "click",
@@ -5113,6 +5815,25 @@ ui.dropZone.addEventListener(
   "dragleave",
   () => {
     ui.dropZone.classList.remove("dragover");
+  }
+);
+
+ui.replayButton.addEventListener(
+  "click",
+  () => {
+    beginCachedPlayback(
+      "forward"
+    );
+  }
+);
+
+
+ui.reverseButton.addEventListener(
+  "click",
+  () => {
+    beginCachedPlayback(
+      "reverse"
+    );
   }
 );
 
