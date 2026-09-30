@@ -2365,7 +2365,7 @@ function fitCamera() {
 /* Source visualisation                                                       */
 /* -------------------------------------------------------------------------- */
 
-ffunction rectangularSourcePolygon() {
+function rectangularSourcePolygon() {
   const side =
     Math.sqrt(
       Math.max(
