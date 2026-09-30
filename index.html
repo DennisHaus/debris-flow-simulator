@@ -28,7 +28,16 @@
 <body>
   <main id="app">
 
-    <section id="viewer"></section>
+    <section id="viewer"></section
+
+      <section id="viewer">
+
+  <div id="sourceMoveHint">
+    SHIFT + LEFT CLICK<br>
+    MOVE SOURCE
+  </div>
+
+</section>
 
     <aside id="interface">
 
@@ -40,7 +49,7 @@
         <h1>
           DEBRIS<br>
           FLOW<br>
-          SIMULATOR 21
+          SIMULATOR 23
         </h1>
 
         <p class="description">
@@ -290,7 +299,7 @@
                       <div class="label-row">
                         <label
                           for="sourceArea"
-                          title="Area of the rectangular material release zone."
+                          title="Area of the material release zone."
                         >
                           RELEASE AREA m²
                         </label>
@@ -428,6 +437,32 @@
                     </div>
 
                   </div>
+
+                  <div class="control">
+
+                    <div class="button-row">
+                      <button
+                        id="drawSourcePolygonButton"
+                        type="button"
+                      >
+                        DRAW POLYGON
+                      </button>
+
+                      <button
+                        id="clearSourcePolygonButton"
+                        type="button"
+                      >
+                        CLEAR
+                      </button>
+                    </div>
+
+                    <div id="sourceDrawingHint">
+                      CLICK TO ADD · DOUBLE-CLICK TO FINISH · ESC TO CANCEL
+                    </div>
+
+                  </div>
+
+
                 </details>
 
 
@@ -925,41 +960,36 @@
           </button>
 
           <button
-  id="replayButton"
-  type="button"
->
-  REPLAY
-</button>
-
-<button
-  id="reverseButton"
-  type="button"
->
-  REVERSE
-</button>
-
-          <button
             id="resetButton"
             type="button"
           >
             RESET
           </button>
-          <button
-            id="drawSourcePolygonButton"
-            type="button"
-          >
-            DRAW SOURCE POLYGON
-          </button>
 
-          <button
-            id="clearSourcePolygonButton"
-            type="button"
+          <div
+            id="simulationTimeline"
+            class="timeline"
           >
-            CLEAR POLYGON
-          </button>
 
-          <div id="sourceDrawingHint">
-            CLICK TO ADD POINTS · DOUBLE-CLICK TO FINISH · ESC TO CANCEL
+            <div class="timeline-heading">
+              <span>SIMULATION HISTORY</span>
+              <span id="timelineTime">0.0 s</span>
+            </div>
+
+            <input
+              id="simulationTimelineSlider"
+              type="range"
+              min="0"
+              max="0"
+              step="1"
+              value="0"
+              disabled
+            >
+
+            <div class="timeline-note">
+              DRAG TO REPLAY OR SCRUB THROUGH THE SIMULATION
+            </div>
+
           </div>
 
         </div>
@@ -1020,12 +1050,6 @@
       >
         CHOOSE 3D MODEL
       </button>
-
-
-      <div id="sourceHint">
-        SHIFT + LEFT CLICK TO MOVE SOURCE
-      </div>
-
 
       <footer>
         <span id="status">

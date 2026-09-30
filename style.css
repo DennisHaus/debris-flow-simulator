@@ -618,3 +618,28 @@ input[type="checkbox"] {
 .change-legend .erosion {
   color: #e15d5d;
 }
+
+
+#sourceMoveHint {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 10;
+
+  padding: 8px 10px;
+
+  border: 1px solid var(--border-light);
+  background: rgba(5, 5, 5, 0.88);
+
+  color: #cccccc;
+
+  font-size: 8px;
+  font-weight: 750;
+  letter-spacing: 0.09em;
+  line-height: 1.4;
+
+  text-align: center;
+
+  pointer-events: none;
+  user-select: none;
+}
