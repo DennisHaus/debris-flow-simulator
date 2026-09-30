@@ -366,10 +366,12 @@ button:active {
 }
 
 .timeline {
+  grid-column: 1 / -1;
   margin-top: 18px;
   padding: 11px 10px 10px;
   border: 1px solid var(--border);
   background: var(--surface);
+
 }
 
 .timeline-heading {

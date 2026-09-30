@@ -2929,7 +2929,6 @@ sourcePoints[pointIndex].y;
           );
       }
     }
-  }
 
   particles = {
     count,
