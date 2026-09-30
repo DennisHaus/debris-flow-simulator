@@ -4128,7 +4128,10 @@ function extractObjectPoints(object) {
 
 
 function importedPointsToTerrain(points) {
-  if (!points.length) {
+  if (
+    !points ||
+    points.length < 3
+  ) {
     createProceduralTerrain();
     return;
   }
@@ -4136,31 +4139,96 @@ function importedPointsToTerrain(points) {
   const rotation =
     new THREE.Euler(
       THREE.MathUtils.degToRad(
-        -90 + params.rotationX
+        -90 +
+        params.rotationX
       ),
+
       THREE.MathUtils.degToRad(
         params.rotationY
       ),
+
       THREE.MathUtils.degToRad(
         params.rotationZ
       ),
+
       "XYZ"
     );
 
   const transformed =
     points.map(
-      (point) =>
-        point.clone().applyEuler(rotation)
+      (point) => {
+        return point
+          .clone()
+          .applyEuler(
+            rotation
+          );
+      }
     );
 
   const bounds =
     new THREE.Box3()
-      .setFromPoints(transformed);
+      .setFromPoints(
+        transformed
+      );
 
   const rawSize =
     bounds.getSize(
       new THREE.Vector3()
     );
+
+  const rawSizeX =
+    Math.max(
+      rawSize.x,
+      0.000001
+    );
+
+  const rawSizeZ =
+    Math.max(
+      rawSize.z,
+      0.000001
+    );
+
+  /*
+    Use one uniform scale for X, Z, and Y.
+    This preserves the original terrain steepness.
+  */
+  const rawLongestSide =
+    Math.max(
+      rawSizeX,
+      rawSizeZ
+    );
+
+  const targetLongestSide =
+    TERRAIN_SIZE *
+    params.modelScale;
+
+  const uniformModelScale =
+    targetLongestSide /
+    rawLongestSide;
+
+  /*
+    Preserve the imported aspect ratio.
+
+    With Z AXIS SCALE = 1, the imported terrain
+    keeps its original horizontal proportions.
+  */
+  const sizeX =
+    rawSizeX *
+    uniformModelScale;
+
+  const sizeZ =
+    rawSizeZ *
+    uniformModelScale *
+    params.depthScale;
+
+  /*
+    Vertical scale follows the same uniform scale.
+    VERTICAL SCALE can still intentionally exaggerate
+    or reduce the imported terrain.
+  */
+  const verticalScale =
+    uniformModelScale *
+    params.verticalExaggeration;
 
   const resolution =
     Math.round(
@@ -4171,58 +4239,66 @@ function importedPointsToTerrain(points) {
       )
     );
 
-  const sizeX =
-    TERRAIN_SIZE *
-    params.modelScale;
-
-  const sizeZ =
-    TERRAIN_SIZE *
-    params.modelScale *
-    params.depthScale;
-
   const heights =
     new Float32Array(
-      resolution * resolution
+      resolution *
+      resolution
     );
 
-  heights.fill(-Infinity);
+  heights.fill(
+    -Infinity
+  );
 
-  for (const point of transformed) {
-    const nx =
+  /*
+    Rasterise the imported vertices into the
+    regular simulation heightfield.
+  */
+  for (
+    const point of transformed
+  ) {
+    const normalizedX =
       clamp(
         (
           point.x -
           bounds.min.x
         ) /
-        Math.max(rawSize.x, 0.000001),
+        rawSizeX,
         0,
         1
       );
 
-    const nz =
+    const normalizedZ =
       clamp(
         (
           point.z -
           bounds.min.z
         ) /
-        Math.max(rawSize.z, 0.000001),
+        rawSizeZ,
         0,
         1
       );
 
-    const x =
+    const gridX =
       Math.round(
-        nx * (resolution - 1)
+        normalizedX *
+        (resolution - 1)
       );
 
-    const z =
+    const gridZ =
       Math.round(
-        nz * (resolution - 1)
+        normalizedZ *
+        (resolution - 1)
       );
 
     const index =
-      z * resolution + x;
+      gridZ *
+      resolution +
+      gridX;
 
+    /*
+      Keep the highest point assigned to each
+      heightfield cell.
+    */
     heights[index] =
       Math.max(
         heights[index],
@@ -4230,35 +4306,174 @@ function importedPointsToTerrain(points) {
       );
   }
 
-  let lowest = Infinity;
+  let lowest =
+    Infinity;
 
-  for (const value of heights) {
-    if (Number.isFinite(value)) {
+  for (
+    const height of heights
+  ) {
+    if (
+      Number.isFinite(
+        height
+      )
+    ) {
       lowest =
-        Math.min(lowest, value);
+        Math.min(
+          lowest,
+          height
+        );
     }
   }
 
-  if (!Number.isFinite(lowest)) {
-    lowest = bounds.min.y;
+  if (
+    !Number.isFinite(
+      lowest
+    )
+  ) {
+    lowest =
+      bounds.min.y;
   }
 
+  /*
+    Fill empty cells by repeatedly averaging
+    neighbouring valid cells.
+  */
+  for (
+    let pass = 0;
+    pass < 12;
+    pass++
+  ) {
+    let filledAny =
+      false;
+
+    for (
+      let z = 0;
+      z < resolution;
+      z++
+    ) {
+      for (
+        let x = 0;
+        x < resolution;
+        x++
+      ) {
+        const index =
+          z *
+          resolution +
+          x;
+
+        if (
+          Number.isFinite(
+            heights[index]
+          )
+        ) {
+          continue;
+        }
+
+        let total = 0;
+        let count = 0;
+
+        for (
+          let dz = -1;
+          dz <= 1;
+          dz++
+        ) {
+          for (
+            let dx = -1;
+            dx <= 1;
+            dx++
+          ) {
+            if (
+              dx === 0 &&
+              dz === 0
+            ) {
+              continue;
+            }
+
+            const neighbourX =
+              x + dx;
+
+            const neighbourZ =
+              z + dz;
+
+            if (
+              neighbourX < 0 ||
+              neighbourX >= resolution ||
+              neighbourZ < 0 ||
+              neighbourZ >= resolution
+            ) {
+              continue;
+            }
+
+            const neighbourIndex =
+              neighbourZ *
+              resolution +
+              neighbourX;
+
+            const neighbourHeight =
+              heights[
+                neighbourIndex
+              ];
+
+            if (
+              Number.isFinite(
+                neighbourHeight
+              )
+            ) {
+              total +=
+                neighbourHeight;
+
+              count++;
+            }
+          }
+        }
+
+        if (
+          count > 0
+        ) {
+          heights[index] =
+            total / count;
+
+          filledAny =
+            true;
+        }
+      }
+    }
+
+    if (
+      !filledAny
+    ) {
+      break;
+    }
+  }
+
+  /*
+    Any cells still empty receive the lowest
+    terrain elevation.
+  */
   for (
     let i = 0;
     i < heights.length;
     i++
   ) {
-    if (!Number.isFinite(heights[i])) {
-      heights[i] = lowest;
+    if (
+      !Number.isFinite(
+        heights[i]
+      )
+    ) {
+      heights[i] =
+        lowest;
     }
 
+    /*
+      Apply the same scale to vertical elevation
+      that was applied horizontally.
+    */
     heights[i] =
       (
         heights[i] -
         lowest
       ) *
-      params.verticalExaggeration *
-      params.modelScale;
+      verticalScale;
   }
 
   createTerrain(
@@ -4269,7 +4484,6 @@ function importedPointsToTerrain(points) {
     "imported"
   );
 }
-
 
 async function loadTerrainFile(file) {
   if (!file) {
