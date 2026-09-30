@@ -40,7 +40,7 @@
         <h1>
           DEBRIS<br>
           FLOW<br>
-          SIMULATOR 7
+          SIMULATOR 10
         </h1>
 
         <p class="description">
@@ -63,7 +63,7 @@
 
       <section class="controls">
 
-        <details open>
+        <details>
           <summary>MATERIAL / FLOW</summary>
 
           <div class="details-body">
@@ -82,9 +82,9 @@
                   class="numeric-input"
                   type="number"
                   min="0"
-                  max="1"
+                  max="10"
                   step="0.01"
-                  value="0.65"
+                  value="5"
                 >
               </div>
 
@@ -318,6 +318,33 @@
                   type="checkbox"
                 >
               </div>
+
+              <div class="control">
+  <div class="label-row">
+    <label
+      for="showOriginalTerrain"
+      title="Shows or hides the untouched terrain as a wireframe reference. The solid terrain remains the current terrain after erosion and deposition."
+    >
+      SHOW ORIGINAL TERRAIN
+    </label>
+
+    <input
+      id="showOriginalTerrain"
+      type="checkbox"
+    >
+  </div>
+</div>
+
+
+<div class="control">
+  <button
+    id="exportTerrainButton"
+    type="button"
+    title="Downloads the current terrain surface, including erosion and deposition changes, as an STL file."
+  >
+    EXPORT UPDATED TERRAIN · STL
+  </button>
+</div>
 
               <div
                 id="changeLegend"

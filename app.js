@@ -16,6 +16,10 @@ import {
   OBJLoader
 } from "three/addons/loaders/OBJLoader.js";
 
+import {
+  STLExporter
+} from "three/addons/exporters/STLExporter.js";
+
 
 /* -------------------------------------------------------------------------- */
 /* DOM helpers                                                                */
@@ -82,6 +86,12 @@ const ui = {
 
   showChangeOverlay:
     $("showChangeOverlay"),
+
+    showOriginalTerrain:
+  $("showOriginalTerrain"),
+
+exportTerrainButton:
+  $("exportTerrainButton"),
 
   changeLegend:
     $("changeLegend"),
@@ -236,6 +246,7 @@ const params = {
 
   terrainEvolutionEnabled: true,
   showChangeOverlay: false,
+  showOriginalTerrain: false,
   changeOverlayScale: 0.05,
 
   erosionRate: 0.6,
@@ -425,6 +436,17 @@ const terrainMaterial =
     side: THREE.DoubleSide
   });
 
+  const originalTerrainMaterial =
+  new THREE.MeshBasicMaterial({
+    color: 0xb8c4c8,
+    wireframe: true,
+    transparent: true,
+    opacity: 0.42,
+    depthTest: true,
+    depthWrite: false,
+    side: THREE.DoubleSide
+  });
+
 
 const sourceGroup =
   new THREE.Group();
@@ -437,6 +459,7 @@ scene.add(sourceGroup);
 /* -------------------------------------------------------------------------- */
 
 let terrainMesh = null;
+let originalTerrainMesh = null;
 let terrainState = null;
 let importedRawPoints = null;
 
@@ -604,6 +627,15 @@ function updateDirectionVisibility() {
   );
 }
 
+function updateOriginalTerrainVisibility() {
+  if (
+    originalTerrainMesh
+  ) {
+    originalTerrainMesh.visible =
+      params.showOriginalTerrain;
+  }
+}
+
 function syncInterface() {
   const pairs = [
     [
@@ -736,6 +768,9 @@ function syncInterface() {
   ui.showChangeOverlay.checked =
     params.showChangeOverlay;
 
+    ui.showOriginalTerrain.checked =
+  params.showOriginalTerrain;
+
   ui.startDirectionMode.value =
     params.startDirectionMode;
 
@@ -744,6 +779,7 @@ function syncInterface() {
 
   updateDirectionVisibility();
   updateOverlayVisibility();
+  updateOriginalTerrainVisibility();
 }
 
 
@@ -1502,9 +1538,26 @@ function createTerrain(
   sizeZ,
   sourceType = "procedural"
 ) {
-  if (terrainMesh) {
-    scene.remove(terrainMesh);
+  if (
+    terrainMesh
+  ) {
+    scene.remove(
+      terrainMesh
+    );
+
     terrainMesh.geometry.dispose();
+    terrainMesh = null;
+  }
+
+  if (
+    originalTerrainMesh
+  ) {
+    scene.remove(
+      originalTerrainMesh
+    );
+
+    originalTerrainMesh.geometry.dispose();
+    originalTerrainMesh = null;
   }
 
   const geometry =
@@ -1521,10 +1574,43 @@ function createTerrain(
       terrainMaterial
     );
 
-  terrainMesh.receiveShadow = true;
-  terrainMesh.castShadow = false;
+  terrainMesh.receiveShadow =
+    true;
 
-  scene.add(terrainMesh);
+  terrainMesh.castShadow =
+    false;
+
+  scene.add(
+    terrainMesh
+  );
+
+
+  /*
+    Keep a separate, untouched copy of the initial
+    terrain as a wireframe reference.
+
+    This geometry is never changed during erosion
+    or deposition.
+  */
+  const originalGeometry =
+    geometry.clone();
+
+  originalTerrainMesh =
+    new THREE.Mesh(
+      originalGeometry,
+      originalTerrainMaterial
+    );
+
+  originalTerrainMesh.renderOrder =
+    1;
+
+  originalTerrainMesh.visible =
+    params.showOriginalTerrain;
+
+  scene.add(
+    originalTerrainMesh
+  );
+
 
   const normalField =
     buildNormalField(
@@ -4278,6 +4364,97 @@ async function loadExampleTerrain() {
   }
 }
 
+function exportUpdatedTerrain() {
+  if (
+    !terrainMesh
+  ) {
+    setStatus(
+      "NO TERRAIN AVAILABLE"
+    );
+
+    return;
+  }
+
+  try {
+    terrainMesh.updateMatrixWorld(
+      true
+    );
+
+    const exporter =
+      new STLExporter();
+
+    const result =
+      exporter.parse(
+        terrainMesh,
+        {
+          binary: true
+        }
+      );
+
+    const blob =
+      new Blob(
+        [result],
+        {
+          type: "model/stl"
+        }
+      );
+
+    const url =
+      URL.createObjectURL(
+        blob
+      );
+
+    const timeLabel =
+      simulationTime
+        .toFixed(2)
+        .replace(
+          ".",
+          "-"
+        );
+
+    const link =
+      document.createElement(
+        "a"
+      );
+
+    link.href =
+      url;
+
+    link.download =
+      `debris-flow-terrain-${timeLabel}s.stl`;
+
+    document.body.appendChild(
+      link
+    );
+
+    link.click();
+    link.remove();
+
+    window.setTimeout(
+      () => {
+        URL.revokeObjectURL(
+          url
+        );
+      },
+      1000
+    );
+
+    setStatus(
+      "UPDATED TERRAIN EXPORTED"
+    );
+  } catch (error) {
+    console.error(
+      "Terrain export failed:",
+      error
+    );
+
+    setStatus(
+      "TERRAIN EXPORT FAILED"
+    );
+  }
+}
+
+
 
 /* -------------------------------------------------------------------------- */
 /* UI bindings                                                                */
@@ -4558,6 +4735,21 @@ ui.showChangeOverlay.addEventListener(
   updateOverlayVisibility
 );
 
+ui.showOriginalTerrain.addEventListener(
+  "change",
+  () => {
+    params.showOriginalTerrain =
+      ui.showOriginalTerrain.checked;
+
+    updateOriginalTerrainVisibility();
+  }
+);
+
+
+ui.exportTerrainButton.addEventListener(
+  "click",
+  exportUpdatedTerrain
+);
 
 ui.colorMode.addEventListener(
   "change",
