@@ -256,9 +256,9 @@ const ui = {
 /* -------------------------------------------------------------------------- */
 
 const params = {
-  particleTerrainFriction: 0.65,
+  particleTerrainFriction: 0.82,
   particleParticleFriction: 0.75,
-  particleCohesion: 0.35,
+  particleCohesion: 0.01,
 
   startVelocity: 0,
   simulationSpeed: 1,
