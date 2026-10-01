@@ -238,7 +238,11 @@ clearSourcePolygonButton:
     $("particleCountStatus"),
 
   sourceDrawingHint:
-    $("sourceDrawingHintrighttemp")
+    $("sourceDrawingHintrighttemp"),
+
+  historySlider: document.getElementById(
+    "simulationTimelineSlider"
+  )
 };
 
 
